@@ -1,12 +1,27 @@
-var x = 10;
-var y = 10;
-var rad = 10;
+var students;
+
+function preload(){
+
+}
 
 function setup(){
 	var canvas = createCanvas(windowWidth, windowHeight);
+	students = [];
+	for (var i = 0; i < 100; i++){
+		var student = new Student(random(windowWidth),random(windowHeight), random(20));
+		students.push(student);
+	}
 }
 
 function draw(){
 	background(100);
-	ellipse(x,y,rad,rad);
+	for(var i = 0; i < students.length; i++){
+   	students[i].display();
+   	students[i].move();
+   	students[i].check();
+	}
 }
+
+window.onresize = function() {
+  canvas.size(windowWidth, windowHeight);
+};
