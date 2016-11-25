@@ -1,27 +1,31 @@
+var canvas;
 var students;
+var pause;
 
-function preload(){
-
-}
+function preload(){}
 
 function setup(){
-	var canvas = createCanvas(windowWidth, windowHeight);
+	canvas = createCanvas(windowWidth, windowHeight);
+	canvas.parent('myContainer');
+	pause = false;
 	students = [];
 	for (var i = 0; i < 100; i++){
-		var student = new Student(random(windowWidth),random(windowHeight), random(20));
+		var affirmative = Math.round(random(1));
+		var rad = windowWidth/50;
+		var student = new Student(random(rad,windowWidth-rad),random(rad,windowHeight-rad), rad, affirmative);
 		students.push(student);
 	}
 }
 
 function draw(){
-	background(100);
-	for(var i = 0; i < students.length; i++){
-   	students[i].display();
-   	students[i].move();
-   	students[i].check();
+	background(150);
+	if (!pause){
+		for(var i = 0; i < students.length; i++){
+   		students[i].move();
+		}
 	}
 }
 
-window.onresize = function() {
+function windowResized() {
   canvas.size(windowWidth, windowHeight);
-};
+}

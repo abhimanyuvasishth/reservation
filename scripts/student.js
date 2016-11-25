@@ -1,38 +1,31 @@
-var Student = function(x,y,rad){
+var Student = function(x,y,rad,affirmative){
   this.x = x;
   this.y = y;
   this.rad = rad;
-  this.speedX = random(10);
-  this.speedY = random(10);
-  this.colors = color(random(255), random(255), random(255));
+  this.maxAgitation = 10;
+  this.agitation = int(random(10));
+  this.color;
+  this.colors = [color(50,50,255),color(255,255,0)];
+  this.affirmative = affirmative;
 
   this.display = function(){
+    var multiplier = this.maxAgitation - this.agitation;
+
+    if (this.affirmative) this.color = color(50,50,55+multiplier*20);
+    else this.color = color(155+multiplier*10,155+multiplier*10,0);
+
     noStroke();
-    fill(this.colors);
-    ellipse(this.x, this.y, this.rad, this.rad);
+    fill(this.color);
+    rectMode(CENTER);
+    rect(this.x, this.y, this.rad, this.rad);
   }
 
   this.move = function(){
-    this.x += this.speedX;
-    this.y += this.speedY;
-  }
-
-  this.check = function(){
-    if (this.x < this.rad/2){
-      this.x = this.rad/2;
-      this.speedX = -1*this.speedX;
-    }
-    else if (this.x > windowWidth - this.rad/2){
-      this.x = windowWidth - this.rad/2;
-      this.speedX = -1*this.speedX; 
-    }
-    if (this.y < this.rad/2){
-      this.y = this.rad/2;
-      this.speedY = -1*this.speedY;
-    }
-    else if (this.y > windowHeight + this.rad/2){
-      this.y = windowHeight - this.rad/2;
-      this.speedY = -1*this.speedY; 
-    }
+    push();
+    translate(this.x, this.y); 
+    rotate(radians(this.agitation * frameCount));
+    translate(-this.x, -this.y); 
+    this.display();
+    pop();
   }
 }
