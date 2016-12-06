@@ -21,16 +21,9 @@ var Student = function(x,y,rad,affirmative){
     fill(0);
     ellipse(this.x-0.25*this.rad, this.y-0.25*this.rad,this.rad/5,this.rad/5);
     ellipse(this.x+0.25*this.rad, this.y-0.25*this.rad,this.rad/5,this.rad/5);
-    // fill(0);
-    // ellipse(this.x-0.25*this.rad, this.y-0.21*this.rad,this.rad/10,this.rad/10);
-    // ellipse(this.x+0.25*this.rad, this.y-0.21*this.rad,this.rad/10,this.rad/10);
-    // fill(255);
-    if (this.agitation < 3){
-      arc(this.x, this.y, this.rad/2, this.rad/2, 0,PI);
-    }
-    else {
-      arc(this.x, this.y+0.25*this.rad, this.rad/2, this.rad/2, PI,PI);  
-    }
+
+    if (this.agitation < 3) arc(this.x, this.y, this.rad/2, this.rad/2, 0,PI);
+    else arc(this.x, this.y+0.25*this.rad, this.rad/2, this.rad/2, PI,PI);  
   }
 
   this.move = function(){

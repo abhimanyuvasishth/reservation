@@ -6,8 +6,11 @@ var buttons;
 var sideBarLeftX;
 var sideBarRightX;
 var topBarX;
+var bottomBarX;
 var policies = ["Reservation","Universities","Education Programs","Vocation Training"];
+var results = ["GDP","Graduates","Popularity","Cutoffs"];
 var fillers = [25,0,0,0];
+var result_fillers = [10000,10000,0,91];
 var reservation;
 var universities;
 var education_programs;
@@ -25,6 +28,7 @@ function setup(){
 	sideBarLeftX = 0.1*windowWidth;
 	sideBarRightX = 0.9*windowWidth;
 	topBarX = 0.1*windowHeight;
+	bottomBarX = 0.85*windowHeight;
 	for (var i = 0; i < 8; i++){
 		var x = i%2 == 0 ? sideBarLeftX/6 : 2*sideBarLeftX/3;
 		var y = windowHeight/5 * Math.ceil((i+1)/2);
@@ -38,14 +42,15 @@ function setup(){
 		var affirmativeStatus = Math.round(random(1));
 		var rad = windowWidth/50;
 		var student = new Student(random(sideBarLeftX+rad,sideBarRightX-rad),
-								  random(topBarX+rad,windowHeight-rad),
+								  random(topBarX+rad,bottomBarX-rad),
 								  rad, affirmativeStatus);
 		students.push(student);
 	}
 }
 
 function draw(){
-	background(150);
+	// background(150);
+	background(250);
 	displaySidePanel();
 	if (!pause){
 		for(var i = 0; i < totalStudents; i++){
@@ -58,6 +63,7 @@ function draw(){
 		}
 	}
 	drawDate();
+	drawMessage();
 }
 
 function drawDate(){
@@ -68,8 +74,16 @@ function drawDate(){
   text('6.12.2016', width*0.5, height*0.05);
 }
 
+function drawMessage(){
+	fill(0);
+  textSize(24);
+  textAlign(CENTER);
+  noStroke();
+  text('Your political popularity is very low!', width*0.5, windowHeight-height*0.05);	
+}
+
 function displaySidePanel(){
-	fill(100);
+	fill(150);
 	noStroke();
 	rect(0,0, sideBarLeftX, windowHeight);
 	rect(sideBarRightX,0, windowWidth, windowHeight);
@@ -81,6 +95,14 @@ function displaySidePanel(){
 		if (i%2 == 0 && i != 0) text(fillers[Math.floor(i/2)], sideBarLeftX*0.5, buttons[i].y+16);
 		textSize(11);
 		if (i%2 == 0) text(policies[Math.floor(i/2)], sideBarLeftX*0.5, buttons[i].y-5);
+	}
+	for (var i = 0; i < results.length; i++){
+		fill(0);
+		textSize(20);
+		if (i < 2) text(result_fillers[i], sideBarRightX+0.5*sideBarLeftX, buttons[i*2].y+16);
+		else text(result_fillers[i] + "%", sideBarRightX+0.5*sideBarLeftX, buttons[i*2].y+16);
+		textSize(11);
+		text(results[i], sideBarRightX+0.5*sideBarLeftX, buttons[i*2].y-5);
 	}
 }
 
@@ -100,23 +122,6 @@ function mouseReleased(){
 		}
 	}
 }
-
-/* Measures of success
-  	1. GDP
- 	2. Segregation
- 	3. Number of graduates
- 	4. Political popularity 
- 	5. Number of graduates
- 	6. University cutoffs
- */
-
-/* Controllable things
-  	1. Percentage of seats reserved
- 	2. Vocation training
- 	3. Public universities
- 	4. Education programs 
- */
-
 
 /* Articles 
  * http://www.thehindu.com/news/national/Reservation-in-higher-education-works-as-intended-Study/article14391741.ece
