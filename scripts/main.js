@@ -3,7 +3,15 @@ var students;
 var pause;
 var totalStudents;
 var buttons;
-var sideBarX;
+var sideBarLeftX;
+var sideBarRightX;
+var topBarX;
+var policies = ["Reservation","Universities","Education Programs","Vocation Training"];
+var fillers = [25,0,0,0];
+var reservation;
+var universities;
+var education_programs;
+var vocation_training;
 
 function preload(){}
 
@@ -14,11 +22,13 @@ function setup(){
 	pause = false;
 	students = [];
 	buttons = [];
-	sideBarX = 0.2*windowWidth
-	for (var i = 0; i < 10; i++){
-		var x = i%2 == 0 ? sideBarX/6 : 2*sideBarX/3;
-		var y = 20 + windowHeight * Math.floor(i/2)/10;
-		var role = "something";
+	sideBarLeftX = 0.1*windowWidth;
+	sideBarRightX = 0.9*windowWidth;
+	topBarX = 0.1*windowHeight;
+	for (var i = 0; i < 8; i++){
+		var x = i%2 == 0 ? sideBarLeftX/6 : 2*sideBarLeftX/3;
+		var y = windowHeight/5 * Math.ceil((i+1)/2);
+		var role = policies[Math.floor(i/2)];
 		var side = i%2 == 0 ? 1 : -1;
 		var button = new Button(i,x,y,role,side);
 		buttons.push(button);
@@ -27,9 +37,9 @@ function setup(){
 	for (var i = 0; i < totalStudents; i++){
 		var affirmativeStatus = Math.round(random(1));
 		var rad = windowWidth/50;
-		var student = new Student(random(sideBarX+rad,windowWidth-rad),
-															random(rad,windowHeight-rad),
-															rad, affirmativeStatus);
+		var student = new Student(random(sideBarLeftX+rad,sideBarRightX-rad),
+								  random(topBarX+rad,windowHeight-rad),
+								  rad, affirmativeStatus);
 		students.push(student);
 	}
 }
@@ -47,20 +57,36 @@ function draw(){
    			students[i].display();
 		}
 	}
+	drawDate();
+}
+
+function drawDate(){
+  fill(0);
+  textSize(24);
+  textAlign(CENTER);
+  noStroke();
+  text('6.12.2016', width*0.5, height*0.05);
 }
 
 function displaySidePanel(){
 	fill(100);
 	noStroke();
-	rect(0,0, sideBarX, windowHeight);
+	rect(0,0, sideBarLeftX, windowHeight);
+	rect(sideBarRightX,0, windowWidth, windowHeight);
 	for (var i = 0; i < buttons.length; i++){
 		buttons[i].display();
+		fill(0);
+		textSize(10);
+		if (i%2 == 0 && i == 0) text(fillers[Math.floor(i/2)] + "%", sideBarLeftX*0.5, buttons[i].y+16);
+		if (i%2 == 0 && i != 0) text(fillers[Math.floor(i/2)], sideBarLeftX*0.5, buttons[i].y+16);
+		textSize(11);
+		if (i%2 == 0) text(policies[Math.floor(i/2)], sideBarLeftX*0.5, buttons[i].y-5);
 	}
 }
 
-function windowResized() {
-  canvas.size(windowWidth, windowHeight);
-}
+// function windowResized() {
+//   canvas.size(windowWidth, windowHeight);
+// }
 
 function mouseReleased(){
 	// pause = !pause;
@@ -74,3 +100,26 @@ function mouseReleased(){
 		}
 	}
 }
+
+/* Measures of success
+  	1. GDP
+ 	2. Segregation
+ 	3. Number of graduates
+ 	4. Political popularity 
+ 	5. Number of graduates
+ 	6. University cutoffs
+ */
+
+/* Controllable things
+  	1. Percentage of seats reserved
+ 	2. Vocation training
+ 	3. Public universities
+ 	4. Education programs 
+ */
+
+
+/* Articles 
+ * http://www.thehindu.com/news/national/Reservation-in-higher-education-works-as-intended-Study/article14391741.ece
+ * http://www.epw.in/reservations-higher-education
+ */
+

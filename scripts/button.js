@@ -2,16 +2,20 @@ var Button = function(id,x,y,role,side){
   this.id = id;
   this.x = x;
   this.y = y;
-  this.width = 50;
-  this.height = 50;
+  this.width = 20;
+  this.height = 20;
   this.role = role;
   this.side = side;
 
   this.display = function(){
     noStroke();
-    if (this.side < 0) fill(200,0,0);
-    else fill(0,200,0);
+    fill(0);
     rect(this.x,this.y,this.width,this.height);
+    fill(255);
+    textSize(10);
+    textAlign(CENTER);
+    if (this.side < 0) text('+', this.x+this.width/2,this.y+this.height/1.5);
+    else text('-', this.x+this.width/2,this.y+this.height/1.5);
   }
 
   this.clicked = function(mousex,mousey){
@@ -19,6 +23,6 @@ var Button = function(id,x,y,role,side){
   }
 
   this.action = function(){
-    console.log("clicked: " + this.side + " : " + this.id);
+    console.log("clicked: " + this.side + " : " + this.id + "-->" + this.role);
   }
 }
