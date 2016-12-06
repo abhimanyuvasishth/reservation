@@ -8,7 +8,7 @@ var sideBarX;
 function preload(){}
 
 function setup(){
-	canvas = createCanvas(windowWidth, windowHeight);
+	canvas = createCanvas(windowWidth-10, windowHeight);
 	totalStudents = 100;
 	canvas.parent('myContainer');
 	pause = false;
