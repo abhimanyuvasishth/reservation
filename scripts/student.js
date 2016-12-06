@@ -5,19 +5,26 @@ var Student = function(x,y,rad,affirmative){
   this.maxAgitation = 10;
   this.agitation = int(random(10));
   this.color;
+  this.curve;
   this.colors = [color(50,50,255),color(255,255,0)];
   this.affirmative = affirmative;
 
   this.display = function(){
     var multiplier = this.maxAgitation - this.agitation;
-
-    if (this.affirmative) this.color = color(50,50,55+multiplier*20);
-    else this.color = color(155+multiplier*10,155+multiplier*10,0);
-
-    noStroke();
-    fill(this.color);
     rectMode(CENTER);
-    rect(this.x, this.y, this.rad, this.rad);
+    noStroke();
+
+    if (this.affirmative) {
+      this.color = color(50,50,55+multiplier*20);
+      this.curve = rad/5;
+    }
+    else {
+      this.color = color(155+multiplier*10,155+multiplier*10,0);
+      this.curve = 0;
+    }
+
+    fill(this.color);
+    rect(this.x, this.y, this.rad, this.rad, this.curve);
     fill(0);
     ellipse(this.x-0.25*this.rad, this.y-0.25*this.rad,this.rad/5,this.rad/5);
     ellipse(this.x+0.25*this.rad, this.y-0.25*this.rad,this.rad/5,this.rad/5);

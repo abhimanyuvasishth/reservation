@@ -10,6 +10,8 @@ var bottomBarX;
 var policies = ["Reservation","Universities","Education Programs","Vocation Training"];
 var results = ["GDP","Graduates","Popularity","Cutoffs"];
 var fillers = [25,0,0,0];
+var upper_limits = [100,100,10,10];
+var lower_limits = [0,0,0,0];
 var result_fillers = [10000,10000,0,91];
 var reservation;
 var universities;
@@ -33,7 +35,7 @@ function setup(){
 		var x = i%2 == 0 ? sideBarLeftX/6 : 2*sideBarLeftX/3;
 		var y = windowHeight/5 * Math.ceil((i+1)/2);
 		var role = policies[Math.floor(i/2)];
-		var side = i%2 == 0 ? 1 : -1;
+		var side = i%2 == 0 ? -1 : 1;
 		var button = new Button(i,x,y,role,side);
 		buttons.push(button);
 	}
@@ -62,8 +64,31 @@ function draw(){
    			students[i].display();
 		}
 	}
+
+	drawUniversity();
 	drawDate();
 	drawMessage();
+}
+
+function drawUniversity(){
+	// Drawing a university
+	var startX = 200;
+	var startY = 100;
+	var height = 15;
+	var width = 2;
+	var gap = 5;
+	var tr_height = 10;
+	var base_thickness = 5;
+	var numColumns = 4;
+
+	for (var i = 0; i < numColumns; i++){
+		rect(startX+i*gap,startY,width,height);	
+	}
+
+	rect(startX-1*gap,startY+height,gap*(numColumns+1)+width,base_thickness);
+	triangle(startX-gap,startY,
+					 startX-gap+(numColumns+1)*gap+width,startY,
+					 startX-gap+(numColumns+1)/2*gap+width,startY-tr_height)
 }
 
 function drawDate(){

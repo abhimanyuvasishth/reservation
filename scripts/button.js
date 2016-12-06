@@ -14,7 +14,7 @@ var Button = function(id,x,y,role,side){
     fill(255);
     textSize(10);
     textAlign(CENTER);
-    if (this.side < 0) text('+', this.x+this.width/2,this.y+this.height/1.5);
+    if (this.side > 0) text('+', this.x+this.width/2,this.y+this.height/1.5);
     else text('-', this.x+this.width/2,this.y+this.height/1.5);
   }
 
@@ -24,5 +24,15 @@ var Button = function(id,x,y,role,side){
 
   this.action = function(){
     console.log("clicked: " + this.side + " : " + this.id + "-->" + this.role);
+    if (this.side > 0){
+      if (fillers[Math.floor(this.id/2)] < upper_limits[Math.floor(this.id/2)]){
+        fillers[Math.floor(this.id/2)]++;
+      }
+    }
+    else {
+      if (fillers[Math.floor(this.id/2)] > lower_limits[Math.floor(this.id/2)]){
+        fillers[Math.floor(this.id/2)]--;
+      } 
+    }
   }
 }
