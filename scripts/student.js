@@ -1,9 +1,10 @@
-var Student = function(x,y,rad,affirmative){
+var Student = function(x,y,rad,affirmative,enrolled){
   this.x = x;
   this.y = y;
   this.rad = rad;
+  this.enrolled = enrolled;
   this.maxAgitation = 10;
-  this.agitation = int(random(10));
+  this.agitation = this.enrolled ? 0 : 9;
   this.color;
   this.curve;
   this.colors = [color(50,50,255),color(255,255,0)];
@@ -15,10 +16,12 @@ var Student = function(x,y,rad,affirmative){
     noStroke();
 
     if (this.affirmative) {
-      this.color = color(50,50,55+multiplier*20);
+      // AFFIRMATIVE = BLUE
+      this.color = color(50,50,155+multiplier*10);
       this.curve = rad/5;
     }
     else {
+      // NOT AFFIRMATIVE = YELLOW
       this.color = color(155+multiplier*10,155+multiplier*10,0);
       this.curve = 0;
     }
