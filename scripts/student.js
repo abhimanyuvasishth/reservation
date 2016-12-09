@@ -4,7 +4,7 @@ var Student = function(x,y,rad,affirmative,enrolled){
   this.rad = rad;
   this.enrolled = enrolled;
   this.maxAgitation = 10;
-  this.agitation = this.enrolled ? 2 : 9;
+  this.agitation = this.enrolled ? random(0,3) : random(5,10);
   this.color;
   this.curve;
   this.colors = [color(50,50,255),color(255,255,0)];
@@ -34,7 +34,10 @@ var Student = function(x,y,rad,affirmative,enrolled){
     ellipse(this.x-0.25*this.rad, this.y-0.25*this.rad,this.rad/5,this.rad/5);
     ellipse(this.x+0.25*this.rad, this.y-0.25*this.rad,this.rad/5,this.rad/5);
 
-    if (this.agitation < 3) arc(this.x, this.y, this.rad/2, this.rad/2, 0,PI);
+    if (this.agitation < 3.3) arc(this.x, this.y, this.rad/2, this.rad/2, 0,PI);
+    else if (this.agitation >= 3.3 && this.agitation < 6.6) {
+      rect(this.x,this.y+this.rad/8,this.rad/2,this.rad/8);  
+    } 
     else arc(this.x, this.y+0.25*this.rad, this.rad/2, this.rad/2, PI,PI);  
     pop();
   }
