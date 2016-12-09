@@ -4,7 +4,7 @@ var Student = function(x,y,rad,affirmative,enrolled){
   this.rad = rad;
   this.enrolled = enrolled;
   this.maxAgitation = 10;
-  this.agitation = this.enrolled ? 0 : 9;
+  this.agitation = this.enrolled ? 2 : 9;
   this.color;
   this.curve;
   this.colors = [color(50,50,255),color(255,255,0)];
@@ -12,36 +12,41 @@ var Student = function(x,y,rad,affirmative,enrolled){
 
   this.display = function(){
     var multiplier = this.maxAgitation - this.agitation;
+    push();
     rectMode(CENTER);
     noStroke();
+    this.curve = rad/3;
 
     if (this.affirmative) {
       // AFFIRMATIVE = BLUE
       this.color = color(50,50,155+multiplier*10);
-      this.curve = rad/5;
+      fill(this.color);
+      rect(this.x, this.y, this.rad, this.rad, 0,0,this.curve,this.curve);
     }
     else {
       // NOT AFFIRMATIVE = YELLOW
       this.color = color(155+multiplier*10,155+multiplier*10,0);
-      this.curve = 0;
+      fill(this.color);
+      rect(this.x, this.y, this.rad, this.rad, this.curve,this.curve,0,0);
     }
 
-    fill(this.color);
-    rect(this.x, this.y, this.rad, this.rad, this.curve);
     fill(0);
     ellipse(this.x-0.25*this.rad, this.y-0.25*this.rad,this.rad/5,this.rad/5);
     ellipse(this.x+0.25*this.rad, this.y-0.25*this.rad,this.rad/5,this.rad/5);
 
     if (this.agitation < 3) arc(this.x, this.y, this.rad/2, this.rad/2, 0,PI);
     else arc(this.x, this.y+0.25*this.rad, this.rad/2, this.rad/2, PI,PI);  
+    pop();
   }
 
   this.move = function(){
     push();
-    translate(this.x, this.y); 
-    rotate(radians(this.agitation * frameCount));
-    translate(-this.x, -this.y); 
-    this.display();
+    // translate(this.x, this.y); 
+    // rotate(radians(this.agitation * frameCount));
+    // translate(-this.x, -this.y); 
+    if (this.enrolled) this.y += sin(frameCount);
+    else this.x += 0.5*this.agitation*sin(frameCount);
+    // this.display();
     pop();
   }
 

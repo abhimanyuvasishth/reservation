@@ -10,7 +10,7 @@ var Button = function(id,x,y,role,side){
   this.display = function(){
     noStroke();
     fill(0);
-    rect(this.x,this.y,this.width,this.height);
+    rect(this.x,this.y,this.width,this.height,this.width/5);
     fill(255);
     textSize(10);
     textAlign(CENTER);
