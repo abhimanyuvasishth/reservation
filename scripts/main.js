@@ -1,5 +1,7 @@
 var canvas;
 
+// Layout
+var font;
 var sideBarLeftX;
 var sideBarRightX;
 var topBarX;
@@ -7,43 +9,47 @@ var bottomBarX;
 var uniSize;
 var youSize;
 
-var students;
-var totalStudents;
-
-var buttons;
-
 // Text information & colors
 var textMessage;
 var textResultVal;
 var textResult;
 var textButtons;
 var textColor;
+var bottomMessage = "";
 
+// Arrays
+var buttons = [];
+var students = [];
 var policies = [];
 var results = [];
 
 var previous_voters;
+var totalStudents;
+var bluePercent;
+var framesPerMonth = 100;
+var initialBudget = 1000;
 
 // Policies
 var reservation;
 var universities;
 var education_programs;
 var aid_programs;
-var costs;
 
 // Results
 var gdp;
-var graduates;
+var mismatches;
 var popularity;
 var party_approval;
+
+// Other results
 var segregation;
 var growth_rate;
+var graduates;
 
 // Images
 var profile;
 
-var bottomMessage = "another message for you";
-
+// Date
 var cur_month;
 var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September","October", "November", "December"];
 var cur_year;
@@ -55,6 +61,7 @@ function preload(){
 function setup(){
 	canvas = createCanvas(windowWidth-20, windowHeight-20);
 	canvas.parent('myContainer');
+	bottomMessage;
 	init();
 }
 
@@ -79,6 +86,8 @@ function initializeFrame(){
 	textResult = textResultVal*2;
 	textButtons = textResult;
 	textColor = 125;
+	// font = loadFont('font-awesome/fonts/FontAwesome.otf');
+	// textFont(font);
 }
 
 function initializeButtons(){
@@ -100,10 +109,10 @@ function initializeValues(){
 	cur_year = year();
 
 	// policies
-	reservation = new Policy("Reservation",25,0,100);
-	universities = new Policy("Universities",0,0,100000);
-	education_programs = new Policy("Education Programs",0,0,100000);
-	aid_programs = new Policy("Aid Programs",0,0,100000);
+	reservation = new Policy("Reservation",25,0,100,1000);
+	universities = new Policy("Universities",0,0,100000,1000);
+	education_programs = new Policy("Education Programs",0,0,100000,1000);
+	aid_programs = new Policy("Aid Programs",0,0,100000,1000);
 	policies = [reservation,universities,education_programs,aid_programs];
 
 	//results
@@ -111,18 +120,20 @@ function initializeValues(){
 	growth_rate = 0;
 	segregation = 0;
 
-	gdp = new Result("GDP",0,-10000,10000);
-	graduates = new Result("Graduates",0,0,10000);
+	gdp = new Result("GDP",initialBudget,-9000000,9000000);
+	mismatches = new Result("Mismatches",0,0,100);
 	popularity = new Result("Popularity",0,0,100);
 	party_approval = new Result("Party Approval",0,0,100);
 
-	results = [gdp,graduates,popularity,party_approval];
+	results = [gdp,mismatches,popularity,party_approval];
 }
 
 function initializeStudents(){
 	students = [];
+	bluePercent = 0;
 	for (var i = 0; i < totalStudents; i++){
 		var affirmativeStatus = Math.round(random(1));
+		if (affirmativeStatus) bluePercent++;
 		var rad = width/50;
 		var enrolled = Math.round(random(1));
 		if (enrolled){
@@ -146,6 +157,7 @@ function draw(){
 	for(var i = 0; i < totalStudents; i++){
 			students[i].display();
  			students[i].move();
+ 			students[i].update();
 	}
 	drawDate();
 	drawMessage();
@@ -154,10 +166,10 @@ function draw(){
 function update(){
 	growth_rate = universities.value;
 	segregation;
-	gdp.update(gdp.value + growth_rate);
+	gdp.grow(gdp.value + growth_rate);
 	party_approval;
 	popularity;
-	results = [gdp,graduates,popularity,party_approval];	
+	results = [gdp,mismatches,popularity,party_approval];	
 }
 
 function drawUniversityPanels(){
@@ -176,7 +188,7 @@ function drawDate(){
   textSize(textMessage);
   textAlign(CENTER);
   noStroke();
-  if (frameCount % 100 == 0){
+  if (frameCount % framesPerMonth == 0){
   	update();
   	cur_month ++;
   	if (cur_month > 12) {
@@ -221,7 +233,7 @@ function displaySidePanel(){
 		fill(0);
 		textSize(textResult);
 		var yVal = (height/5)*(i+1);
-		if (i < 2) text(results[i].value, sideBarRightX+0.5*sideBarLeftX, yVal);
+		if (i < 1) text(results[i].value, sideBarRightX+0.5*sideBarLeftX, yVal);
 		else text(results[i].value + "%", sideBarRightX+0.5*sideBarLeftX, yVal);
 		textSize(textResultVal);
 		text(results[i].name, sideBarRightX+0.5*sideBarLeftX, yVal-20);
@@ -296,7 +308,7 @@ function mouseReleased(){
 		init();
 		return;
 	}
-	var index = int(random(100));
+	var index = int(random(totalStudents));
 	if (!students[index].enrolled) students[index].enroll();
 	else students[index].dropOut();
 }
