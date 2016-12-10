@@ -9,6 +9,9 @@ var Student = function(x,y,rad,affirmative,enrolled){
   this.curve;
   this.colors = [color(50,50,255),color(255,255,0)];
   this.affirmative = affirmative;
+  this.newPoint = [this.x,this.y];
+  this.transitioning = false;
+  this.speed = [0,0];
 
   this.display = function(){
     var multiplier = this.maxAgitation - this.agitation;
@@ -43,14 +46,43 @@ var Student = function(x,y,rad,affirmative,enrolled){
   }
 
   this.move = function(){
-    push();
-    // translate(this.x, this.y); 
-    // rotate(radians(this.agitation * frameCount));
-    // translate(-this.x, -this.y); 
-    if (this.enrolled) this.y += sin(frameCount);
-    else this.x += 0.5*this.agitation*sin(frameCount);
-    // this.display();
-    pop();
+    if (!this.transitioning){
+      // push();
+      // if (this.enrolled) this.y += sin(frameCount);
+      // else this.x += 0.5*this.agitation*sin(frameCount);
+      // pop();
+    }
+    else {
+      this.y += this.speed[1];
+      this.x += this.speed[0];
+      if (this.newPoint[0] < this.x+5 && this.newPoint[0] > this.x-5 && 
+          this.newPoint[1] < this.y+5 && this.newPoint[1] > this.y-5){
+        this.transitioning = false;
+        console.log("done");
+      }
+    }
+  }
+
+  this.enroll = function(){
+    if (!this.transitioning && !this.enrolled){
+      this.newPoint[0] = int(random(sideBarLeftX+rad,sideBarRightX-rad-uniSize));
+      this.newPoint[1] = int(random(topBarX+rad,bottomBarX-rad));
+      this.speed = [(this.newPoint[0]-this.x)/100,(this.newPoint[1]-this.y)/100];
+      console.log(this.newPoint + ": enrolling");
+      this.transitioning = true;
+      this.enrolled = true;
+    }
+  }
+
+  this.dropOut = function(){
+    if (!this.transitioning && this.enrolled){
+      this.newPoint[0] = int(random(width-sideBarLeftX-uniSize+2*rad,sideBarRightX-rad));
+      this.newPoint[1] = int(random(topBarX+rad,bottomBarX-rad));
+      this.speed = [(this.newPoint[0]-this.x)/100,(this.newPoint[1]-this.y)/100];
+      console.log(this.newPoint + ": dropping out");
+      this.transitioning = true;
+      this.enrolled = false;
+    }
   }
 
   this.updateAgitation = function(num){

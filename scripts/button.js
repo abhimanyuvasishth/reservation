@@ -1,10 +1,10 @@
-var Button = function(id,x,y,role,side){
+var Button = function(id,x,y,policy,side){
   this.id = id;
   this.x = x;
   this.y = y;
   this.width = 20;
   this.height = 20;
-  this.role = role;
+  this.policy = policy;
   this.side = side;
 
   this.display = function(){
@@ -23,16 +23,6 @@ var Button = function(id,x,y,role,side){
   }
 
   this.action = function(){
-    console.log("clicked: " + this.side + " : " + this.id + "-->" + this.role);
-    if (this.side > 0){
-      if (fillers[Math.floor(this.id/2)] < upper_limits[Math.floor(this.id/2)]){
-        fillers[Math.floor(this.id/2)]++;
-      }
-    }
-    else {
-      if (fillers[Math.floor(this.id/2)] > lower_limits[Math.floor(this.id/2)]){
-        fillers[Math.floor(this.id/2)]--;
-      } 
-    }
+    this.policy.update(this.side);
   }
 }
