@@ -11,7 +11,13 @@ var students;
 var totalStudents;
 
 var buttons;
-var textColor = 125;
+
+// Text information & colors
+var textMessage;
+var textResultVal;
+var textResult;
+var textButtons;
+var textColor;
 
 var policies = [];
 var results = [];
@@ -68,6 +74,11 @@ function initializeFrame(){
 	topBarX = 0.08*height;
 	bottomBarX = 0.9*height;
 	youSize = height*0.2;
+	textMessage = width/40;
+	textResultVal = textMessage/3;
+	textResult = textResultVal*2;
+	textButtons = textResult;
+	textColor = 125;
 }
 
 function initializeButtons(){
@@ -155,13 +166,14 @@ function drawUniversityPanels(){
 	fill(100);
 	rect(sideBarRightX-uniSize,topBarX,uniSize,bottomBarX-topBarX);
 	fill(0);
+	textSize(textMessage);
 	text("Enrolled", sideBarLeftX+uniSize/2,topBarX+(bottomBarX-topBarX)*0.5);
 	text("Not Enrolled", sideBarLeftX+3*uniSize/2,topBarX+(bottomBarX-topBarX)*0.5);
 }
 
 function drawDate(){
   fill(textColor);
-  textSize(24);
+  textSize(textMessage);
   textAlign(CENTER);
   noStroke();
   if (frameCount % 100 == 0){
@@ -177,7 +189,7 @@ function drawDate(){
 
 function drawMessage(){
 	fill(textColor);
-  textSize(24);
+  textSize(textMessage);
   textAlign(CENTER);
   noStroke();
   text(bottomMessage, width*0.5, height*0.95+10);	
@@ -197,21 +209,21 @@ function displaySidePanel(){
 		buttons[2*i].display();
 		buttons[2*i+1].display();
 		fill(0);
-		textSize(10);
+		textSize(textResultVal);
 		if (i == 0) text(policies[i].value + "%", sideBarLeftX*0.5, yVal);
 		else text(policies[i].value, sideBarLeftX*0.5, yVal);
-		textSize(11);
+		textSize(textResultVal);
 		text(policies[i].name, sideBarLeftX*0.5, yVal-20);
 	}
 
 	// Right sidebar for results
 	for (var i = 0; i < results.length; i++){
 		fill(0);
-		textSize(20);
+		textSize(textResult);
 		var yVal = (height/5)*(i+1);
 		if (i < 2) text(results[i].value, sideBarRightX+0.5*sideBarLeftX, yVal);
 		else text(results[i].value + "%", sideBarRightX+0.5*sideBarLeftX, yVal);
-		textSize(11);
+		textSize(textResultVal);
 		text(results[i].name, sideBarRightX+0.5*sideBarLeftX, yVal-20);
 		
 		// Status triangles
@@ -244,7 +256,7 @@ function createProfile(){
 	pop();
 	fill(0);
 	image(profile,profile.x,profile.y);
-	textSize(20);
+	textSize(textButtons);
 	text("YOU", sideBarLeftX/2, 10+profile.height+20);
 }
 
@@ -256,7 +268,7 @@ function createRestartButton(){
 	rect(5,bottomBarX+5,sideBarLeftX-10,(height-bottomBarX-10),5,5);
 	pop();
 	fill(0);
-	textSize(20);
+	textSize(textButtons);
 	text("RESTART", sideBarLeftX/2, bottomBarX+5+(height-bottomBarX)/2);	
 }
 
