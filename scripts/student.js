@@ -85,16 +85,7 @@ var Student = function(x,y,rad,affirmative,enrolled){
     }
   }
 
-  this.updateAgitation = function(num){
-    if (num < 0){
-      if (this.agitation >= Math.abs(num)){
-        this.agitation += num;
-      }
-    }
-    else {
-      if (this.agitation < this.maxAgitation - num){
-        this.agitation += num;
-      }  
-    }
+  this.updateAgitation = function(){
+    // Do student math here
   }
 }

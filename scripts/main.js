@@ -13,8 +13,8 @@ var totalStudents;
 var buttons;
 var textColor = 125;
 
-var policies;
-var results;
+var policies = [];
+var results = [];
 
 var previous_voters;
 
@@ -38,9 +38,9 @@ var profile;
 
 var bottomMessage = "another message for you";
 
-var month;
+var cur_month;
 var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September","October", "November", "December"];
-var year;
+var cur_year;
 
 function preload(){
 	profile = loadImage('img/profile_50.png');
@@ -49,7 +49,10 @@ function preload(){
 function setup(){
 	canvas = createCanvas(windowWidth-20, windowHeight-20);
 	canvas.parent('myContainer');
+	init();
+}
 
+function init(){
 	initializeFrame();
 	initializeValues();
 	initializeStudents();
@@ -82,8 +85,8 @@ function initializeButtons(){
 
 function initializeValues(){
 	// date
-	month = month();
-	year = year();
+	cur_month = month();
+	cur_year = year();
 
 	// policies
 	reservation = new Policy("Reservation",25,0,100);
@@ -141,7 +144,6 @@ function update(){
 	growth_rate = universities.value;
 	segregation;
 	gdp.update(gdp.value + growth_rate);
-	console.log(gdp.sign);
 	party_approval;
 	popularity;
 	results = [gdp,graduates,popularity,party_approval];	
@@ -164,13 +166,13 @@ function drawDate(){
   noStroke();
   if (frameCount % 100 == 0){
   	update();
-  	month ++;
-  	if (month > 12) {
-  		month = 1;
-  		year++;
+  	cur_month ++;
+  	if (cur_month > 12) {
+  		cur_month = 1;
+  		cur_year++;
   	}
   }
-  text(months[month-1] + " " + year, width*0.5, height*0.05);
+  text(months[cur_month-1] + " " + cur_year, width*0.5, height*0.05);
 }
 
 function drawMessage(){
@@ -263,19 +265,23 @@ function createRestartButton(){
 // }
 
 function mouseReleased(){
+	// Clicked a button
 	for (var i = 0; i < buttons.length; i++){
 		if (buttons[i].clicked(mouseX,mouseY)) {
 			buttons[i].action();
 			return;
 		}
 	}
+	// Clicked on you
 	if (mouseX < sideBarLeftX-5 && mouseX > 5 && mouseY < youSize-30 && mouseY > 5){
 		profile.filter(INVERT);
 		bottomMessage = "your popularity is very low";
 		return;
 	}
+	// Clicked restart
 	if (mouseX < sideBarLeftX-5 && mouseX > 5 && mouseY > bottomBarX+5 && mouseY < height-5){
 		bottomMessage = "here is some text to help you";
+		init();
 		return;
 	}
 	var index = int(random(100));
