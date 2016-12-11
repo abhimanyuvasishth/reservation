@@ -15,6 +15,7 @@ var Student = function(x,y,rad,affirmative,enrolled){
   this.agitation = 0;
 
   this.mismatched = false;
+  this.graduated = false;
   this.newPoint = [this.x,this.y];
   this.transitioning = false;
   this.speed = [0,0];
@@ -50,6 +51,11 @@ var Student = function(x,y,rad,affirmative,enrolled){
     }
 
     fill(0);
+    if (this.graduated){
+      rect(x,y-this.rad*0.5,this.rad/5,this.rad*0.2);
+      rect(x,y-this.rad*0.6,this.rad*1.2,this.rad*0.1);
+    }
+
     ellipse(x-0.25*this.rad, y-0.25*this.rad,this.rad/5,this.rad/5);
     ellipse(x+0.25*this.rad, y-0.25*this.rad,this.rad/5,this.rad/5);
 
@@ -92,29 +98,51 @@ var Student = function(x,y,rad,affirmative,enrolled){
       this.x += this.speed[0];
       if (this.newPoint[0] < this.x+5 && this.newPoint[0] > this.x-5 && 
           this.newPoint[1] < this.y+5 && this.newPoint[1] > this.y-5){
-        this.transitioning = false;
-        console.log("done");
+        if (this.graduated) {
+          var index = students.indexOf(this);
+          students.splice(index, 1);
+          createNewStudent(index);
+        }
+        else {
+          this.transitioning = false;
+        }
       }
     }
   }
 
   this.enroll = function(){
-    if (!this.transitioning && !this.enrolled){
+    if (!this.transitioning){
       this.newPoint[0] = int(random(sideBarLeftX+rad,sideBarRightX-rad-uniSize));
       this.newPoint[1] = int(random(topBarX+rad,bottomBarX-rad));
       this.speed = [(this.newPoint[0]-this.x)/10,(this.newPoint[1]-this.y)/10];
-      console.log(this.newPoint + ": enrolling");
       this.transitioning = true;
       this.enrolled = true;
     }
   }
 
+  this.graduate = function(){
+    this.transitioning = true;
+    this.graduated = true;
+    this.newPoint[0] = sideBarLeftX-this.rad;
+    this.newPoint[1] = this.y;
+    this.speed = [(this.newPoint[0]-this.x)/10,(this.newPoint[1]-this.y)/10];
+  }
+
+  this.join = function(){
+    // Where this new student goes
+    if (this.enrolled){
+      this.enroll();
+    }
+    else {
+      this.dropOut();
+    }
+  }
+
   this.dropOut = function(){
-    if (!this.transitioning && this.enrolled){
+    if (!this.transitioning){
       this.newPoint[0] = int(random(width-sideBarLeftX-uniSize+2*rad,sideBarRightX-rad));
       this.newPoint[1] = int(random(topBarX+rad,bottomBarX-rad));
       this.speed = [(this.newPoint[0]-this.x)/10,(this.newPoint[1]-this.y)/10];
-      console.log(this.newPoint + ": dropping out");
       this.transitioning = true;
       this.enrolled = false;
     }

@@ -99,7 +99,7 @@ function initializeFrame(){
 
 function initializeButtons(){
 	buttons = [];
-	// Creating buttons
+	// Creating policy buttons
 	for (var i = 0; i < policies.length; i++){
 		var y = youSize/2 + (bottomBarX-topBarX)/(policies.length+1) * (i+1);	
 		var policy = policies[i];
@@ -171,7 +171,7 @@ function initializeStudents(){
 }
 
 function draw(){
-	background(0);
+	background(250);
 	displaySidePanel();
 	drawUniversityPanels();
 	for(var i = 0; i < totalStudents; i++){
@@ -210,14 +210,23 @@ function drawUniversityPanels(){
 		shownPerson.display(1);
 		var majorityOrNot = shownPerson.affirmative == true ? "minority. " : "majority. ";
 		var mismatched = shownPerson.mismatched ? "mismatched. " : "";
+		var graduated = shownPerson.graduated ? "graduated. " : "";
 		var x = sideBarLeftX+2*(sideBarRightX-sideBarLeftX)/4;
       	var y = bottomBarX+(height-bottomBarX)/2  + textMessage/4;
       	var happiness = Math.round((shownPerson.maxAgitation - shownPerson.agitation)/shownPerson.maxAgitation * 100);
       	push();
       	fill(textColor);
-		text(majorityOrNot + mismatched + happiness + "% happy.",x,y);
+		text(majorityOrNot + mismatched + graduated + happiness + "% happy.",x,y);
 		pop();
 	}
+}
+
+function createNewStudent(index){
+	var rad = (index > 1) ? students[0].rad : students[1].rad;
+	var student = new Student(sideBarRightX,random(topBarX,bottomBarX), rad, true, false);
+	students.splice(index, 0, student);
+	students[index].join();
+	showLegend = false;
 }
 
 function drawDate(){
@@ -297,7 +306,7 @@ function displaySidePanel(){
 		}
 	}
 	createProfile();
-	createRestartButton();
+	createRestartAndHelpButton();
 }
 
 function createProfile(){
@@ -314,16 +323,18 @@ function createProfile(){
 	text("YOU", sideBarLeftX/2, 10+profile.height+20);
 }
 
-function createRestartButton(){
+function createRestartAndHelpButton(){
 	push();
 	fill(100,0,0);
 	noFill();
 	fill(200);
-	rect(5,bottomBarX+5,sideBarLeftX-10,(height-bottomBarX-10),5,5);
+	rect(textResultVal/2,bottomBarX+textResultVal/2,sideBarLeftX/2-textResultVal,(height-bottomBarX-10),5,5);
+	rect(sideBarLeftX/2+textResultVal/2,bottomBarX+5,sideBarLeftX/2-textResultVal,(height-bottomBarX-10),5,5);
 	pop();
 	fill(0);
 	textSize(textButtons);
-	text("RESTART", sideBarLeftX/2, bottomBarX+5+(height-bottomBarX)/2);	
+	text("RE", sideBarLeftX*0.25, bottomBarX+5+(height-bottomBarX)/2);	
+	text("HE", sideBarLeftX*0.75, bottomBarX+5+(height-bottomBarX)/2);	
 }
 
 // function windowResized() {
@@ -347,15 +358,27 @@ function mouseReleased(){
 		return;
 	}
 	// Clicked restart
-	if (mouseX < sideBarLeftX-5 && mouseX > 5 && mouseY > bottomBarX+5 && mouseY < height-5){
-		bottomMessage = "here is some text to help you";
-		init();
-		showLegend = false;
-		return;
+	if (mouseX < sideBarLeftX-textResultVal/2 && mouseX > textResultVal/2 && mouseY > bottomBarX+textResultVal/2 && mouseY < height-textResultVal/2){
+		if (mouseX < sideBarLeftX*0.5){
+			// Restarted
+			bottomMessage = "restarted";
+			init();
+			showLegend = false;
+			return;
+		}
+		else {
+			// Restarted
+			bottomMessage = "help 4 u";
+			showLegend = false;
+			return;	
+		}
 	}
 	for (var i = 0; i < totalStudents; i++){
 		if (students[i].clicked(mouseX,mouseY)) {
 			students[i].show();
+			if (students[i].enrolled){
+				students[i].graduate();
+			}
 			return;
 		}
 	}
