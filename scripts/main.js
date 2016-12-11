@@ -100,13 +100,25 @@ function initializeFrame(){
 function initializeButtons(){
 	buttons = [];
 	// Creating buttons
-	for (var i = 0; i < policies.length*2; i++){
-		var x = i%2 == 0 ? sideBarLeftX/6 : 2*sideBarLeftX/3;
-		var y = youSize/2 + (bottomBarX-topBarX)/(policies.length+1) * (Math.floor(i/2)+1);
-		var policy = policies[Math.floor(i/2)];
-		var side = i%2 == 0 ? -1 : 1;
-		var button = new Button(i,x,y,policy,side);
-		buttons.push(button);
+	for (var i = 0; i < policies.length; i++){
+		var y = youSize/2 + (bottomBarX-topBarX)/(policies.length+1) * (i+1);	
+		var policy = policies[i];
+		if (policies[i].type == "numeric" || policies[i].type == "percent"){
+			var x_left = sideBarLeftX/6; 
+			var x_right = 2*sideBarLeftX/3;			
+			var button_left = new Button(2*i,x_left,y,policy,-1);
+			var button_right = new Button(2*i+1,x_right,y,policy,1);
+			buttons.push(button_left);
+			buttons.push(button_right);
+			policy.buttons.push(button_left);
+			policy.buttons.push(button_right);
+		}
+		else {
+			var x = sideBarLeftX*0.5;	
+			var button = new Button(i,x,y,policy,0);
+			buttons.push(button);	
+			policy.buttons.push(button);
+		}
 	}
 }
 
@@ -118,7 +130,7 @@ function initializeValues(){
 	// policies
 	reservation = new Policy("Reservation",25,0,100,1000);
 	universities = new Policy("Universities",700,500,900,1000);
-	education_programs = new Policy("Public Initiatives",0,0,0,0);
+	education_programs = new Policy("Public Initiatives",0,0,0,1000);
 	//remove this
 	policies = [reservation,universities,education_programs];
 
@@ -197,7 +209,7 @@ function drawUniversityPanels(){
 	if (showLegend){
 		shownPerson.display(1);
 		var majorityOrNot = shownPerson.affirmative == true ? "minority. " : "majority. ";
-		var mismatched = shownPerson.mismatched ? "mismatched. " : "mismatched. ";
+		var mismatched = shownPerson.mismatched ? "mismatched. " : "";
 		var x = sideBarLeftX+2*(sideBarRightX-sideBarLeftX)/4;
       	var y = bottomBarX+(height-bottomBarX)/2  + textMessage/4;
       	var happiness = Math.round((shownPerson.maxAgitation - shownPerson.agitation)/shownPerson.maxAgitation * 100);
@@ -242,13 +254,15 @@ function displaySidePanel(){
 
 	// Left sidebar and buttons
 	for (var i = 0; i < policies.length; i++){
-		var yVal = buttons[2*i].y+16;
-		buttons[2*i].display();
-		buttons[2*i+1].display();
+		var yVal = policies[i].buttons[0].y+16;
+		for (var j = 0; j < policies[i].buttons.length; j++){
+			policies[i].buttons[j].display();
+		}
+		
 		fill(0);
 		textSize(textResultVal);
-		if (i == 0) text(policies[i].value + "%", sideBarLeftX*0.5, yVal);
-		else text(policies[i].value, sideBarLeftX*0.5, yVal);
+		if (policies[i].type == "percent") text(policies[i].value + "%", sideBarLeftX*0.5, yVal);
+		else if (policies[i].type == "numeric") text(policies[i].value, sideBarLeftX*0.5, yVal);
 		textSize(textResultVal);
 		text(policies[i].name, sideBarLeftX*0.5, yVal-textResult);
 		textSize(textCost);

@@ -4,6 +4,7 @@ var Policy = function(name,value,lower,upper,cost){
   this.lower = lower;
   this.upper = upper;
   this.cost = cost;
+  this.buttons = [];
   this.type;
   
   if (this.upper == 100 && this.lower == 0){
@@ -17,12 +18,18 @@ var Policy = function(name,value,lower,upper,cost){
   }
 
   this.update = function(sign){
-    if (sign > 0 && this.value < this.upper) {
-    	this.value++;
-    	gdp.update(gdp.value-this.cost);
-   	}
-    else if (sign < 0 && this.value > this.lower) {
-    	this.value--;
+    if (this.type == "boost"){
+      // Do boost math here
+      console.log("ch");
+    }
+    else if (this.type == "percent" || this.type == "numeric") {
+      if (sign > 0 && this.value < this.upper) {
+        this.value++;
+        gdp.update(gdp.value-this.cost);
+      }
+      else if (sign < 0 && this.value > this.lower) {
+        this.value--;
+      }
     }
   }
 
