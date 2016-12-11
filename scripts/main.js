@@ -21,9 +21,11 @@ var shownPerson;
 
 // Arrays
 var buttons = [];
+var infoButtons = [];
 var students = [];
 var policies = [];
 var results = [];
+var messages = [];
 
 var previous_voters;
 var totalStudents;
@@ -119,6 +121,14 @@ function initializeButtons(){
 			buttons.push(button);	
 			policy.buttons.push(button);
 		}
+	}
+	// Creating result buttons
+	for (var i = 0; i < results.length; i++){
+		var yVal = (height/5)*(i+1);		
+		var x = sideBarRightX+0.5*sideBarLeftX;
+		var y = yVal-textResult*2;
+		var button = new Button(i,x,y,null,null);
+		infoButtons.push(button);
 	}
 }
 
@@ -287,22 +297,22 @@ function displaySidePanel(){
 		if (i < 1) text(results[i].value, sideBarRightX+0.5*sideBarLeftX, yVal);
 		else text(Math.round(results[i].value) + "%", sideBarRightX+0.5*sideBarLeftX, yVal);
 		textSize(textResultVal);
-		text(results[i].name, sideBarRightX+0.5*sideBarLeftX, yVal-20);
-		
+		text(results[i].name, sideBarRightX+0.5*sideBarLeftX, yVal-textResult);
+		infoButtons[i].display();	
 		// Status triangles
 		if (results[i].sign > 0){
 			// green triangle
 			fill(0,175,0);
-			triangle(sideBarRightX+0.5*sideBarLeftX-10, yVal+20,
-						 sideBarRightX+0.5*sideBarLeftX+10, yVal+20,
-						 sideBarRightX+0.5*sideBarLeftX, yVal+5);
+			triangle(sideBarRightX+0.5*sideBarLeftX-textResultVal, yVal+textResult,
+						 sideBarRightX+0.5*sideBarLeftX+textResultVal, yVal+textResult,
+						 sideBarRightX+0.5*sideBarLeftX, yVal+textResultVal/2);
 		}
 		else if (results[i].sign < 0){
 			// red triangle
 			fill(175,0,0);
-			triangle(sideBarRightX+0.5*sideBarLeftX-10, yVal+5,
-						 sideBarRightX+0.5*sideBarLeftX+10, yVal+5,
-						 sideBarRightX+0.5*sideBarLeftX, yVal+20);
+			triangle(sideBarRightX+0.5*sideBarLeftX-textResultVal, yVal+textResultVal/2,
+						 sideBarRightX+0.5*sideBarLeftX+textResultVal, yVal+textResultVal/2,
+						 sideBarRightX+0.5*sideBarLeftX, yVal+textResult);
 		}
 	}
 	createProfile();
@@ -333,8 +343,9 @@ function createRestartAndHelpButton(){
 	pop();
 	fill(0);
 	textSize(textButtons);
-	text("RE", sideBarLeftX*0.25, bottomBarX+5+(height-bottomBarX)/2);	
-	text("HE", sideBarLeftX*0.75, bottomBarX+5+(height-bottomBarX)/2);	
+	// Replace these with images
+	text("R", sideBarLeftX*0.25, bottomBarX+5+(height-bottomBarX)/2);	
+	text("H", sideBarLeftX*0.75, bottomBarX+5+(height-bottomBarX)/2);	
 }
 
 // function windowResized() {
@@ -346,6 +357,14 @@ function mouseReleased(){
 	for (var i = 0; i < buttons.length; i++){
 		if (buttons[i].clicked(mouseX,mouseY)) {
 			buttons[i].action();
+			showLegend = false;
+			return;
+		}
+	}
+	// Clicked an infoButton
+	for (var i = 0; i < infoButtons.length; i++){
+		if (infoButtons[i].clicked(mouseX,mouseY)) {
+			infoButtons[i].action();
 			showLegend = false;
 			return;
 		}
