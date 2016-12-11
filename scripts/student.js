@@ -2,54 +2,82 @@ var Student = function(x,y,rad,affirmative,enrolled){
   this.x = x;
   this.y = y;
   this.rad = rad;
+  this.affirmative = affirmative;
   this.enrolled = enrolled;
+  this.color;
+
+  this.initializeTime = frameCount;
+
   this.maxAgitation = 10;
   this.minAgitation = 0;
+
+  this.satisfaction = 0;
+  this.agitation = 0;
+
   this.mismatched = false;
-  this.agitation = this.enrolled ? random(0,3) : random(5,10);
-  this.color;
-  this.curve;
-  this.colors = [color(50,50,255),color(255,255,0)];
-  this.affirmative = affirmative;
   this.newPoint = [this.x,this.y];
   this.transitioning = false;
   this.speed = [0,0];
-  this.initializeTime = frameCount;
 
-  this.display = function(){
-    var multiplier = this.maxAgitation - this.agitation;
+  this.individualHappiness = random(1);
+
+  this.display = function(legend){
+    if (legend) {
+      var x = sideBarLeftX+(sideBarRightX-sideBarLeftX)/8;
+      var y = bottomBarX+(height-bottomBarX)/2;
+    }
+    else {
+      var x = this.x;
+      var y = this.y;
+    }
+    var multiplier = (this.maxAgitation - this.agitation)*10/this.maxAgitation;
     push();
     rectMode(CENTER);
     noStroke();
-    this.curve = rad/3;
+    var curve = rad/3;
 
     if (this.affirmative) {
       // AFFIRMATIVE = BLUE
       this.color = color(50,50,155+multiplier*10);
       fill(this.color);
-      rect(this.x, this.y, this.rad, this.rad, 0,0,this.curve,this.curve);
+      rect(x, y, this.rad, this.rad, 0,0,curve,curve);
     }
     else {
       // NOT AFFIRMATIVE = YELLOW
       this.color = color(155+multiplier*10,155+multiplier*10,0);
       fill(this.color);
-      rect(this.x, this.y, this.rad, this.rad, this.curve,this.curve,0,0);
+      rect(x, y, this.rad, this.rad, curve,curve,0,0);
     }
 
     fill(0);
-    ellipse(this.x-0.25*this.rad, this.y-0.25*this.rad,this.rad/5,this.rad/5);
-    ellipse(this.x+0.25*this.rad, this.y-0.25*this.rad,this.rad/5,this.rad/5);
+    ellipse(x-0.25*this.rad, y-0.25*this.rad,this.rad/5,this.rad/5);
+    ellipse(x+0.25*this.rad, y-0.25*this.rad,this.rad/5,this.rad/5);
 
-    if (this.agitation < 3.3) arc(this.x, this.y, this.rad/2, this.rad/2, 0,PI);
-    else if (this.agitation >= 3.3 && this.agitation < 6.6) {
-      rect(this.x,this.y+this.rad/8,this.rad/2,this.rad/8);  
+    // Happy arc
+    if (this.agitation < this.maxAgitation/3) {
+      arc(x, y, this.rad/2, this.rad/2, 0,PI);
+    }
+    // Neutral line
+    else if (this.agitation >= this.maxAgitation/3 && this.agitation < 2*this.maxAgitation/3) {
+      rect(x,y+this.rad/8,this.rad/2,this.rad/16);  
     } 
-    else arc(this.x, this.y+0.25*this.rad, this.rad/2, this.rad/2, PI,PI);  
+    // Sad curve
+    else {
+      noFill();
+      stroke(0);
+      strokeWeight(this.rad/16);
+      arc(x, y+this.rad/4, this.rad/2, this.rad/2, PI,PI);
+    }
     pop();
   }
 
   this.time = function(){
     frameCount - this.initializeTime;
+  }
+
+  this.clicked = function(mousex,mousey){
+    return (mousex < this.x+this.rad/2 && mousex > this.x-this.rad/2 &&
+            mousey < this.y+this.rad/2 && mousey > this.y-this.rad/2);
   }
 
   this.move = function(){
@@ -92,35 +120,48 @@ var Student = function(x,y,rad,affirmative,enrolled){
     }
   }
 
-  this.update = function(){
-    var reservation_coefficient = (reservation.value/bluePercent <= 1) ? 1 : map(reservation.value/bluePercent,1,8,1,-1);
-    var minority_reservation_coefficient = map(reservation.value/bluePercent,0,8,0,1);
-    var education_coefficient = education_programs.scale();
-    var aid_coefficient = aid_programs.scale();
-    var university_coefficient = universities.scale();
-    var segregation_coefficient = -(map(segregation,0,100,0,1));
-    var mismatched_coefficient = -(map(mismatches.value,0,100,0,1));
-    var growth_coefficient = gdp.sign;
+  this.show = function(){
+    showLegend = true;
+    shownPerson = this;
+    bottomMessage = "";
+  }
 
-    // console.log('1: '+ reservation_coefficient);
-    // console.log('2: '+ minority_reservation_coefficient);
-    // console.log('3: '+ education_coefficient);
-    // console.log('4: '+ aid_coefficient);
-    // console.log('5: '+ university_coefficient);
-    // console.log('6: '+ segregation_coefficient);
-    // console.log('7: '+ mismatched_coefficient);
-    // console.log('8: '+ growth_coefficient);
+  this.update = function(){
+    // Values between 0 and 1. Opposite for majority and minority
+    if (reservation.value/bluePercent <= 1){
+      // Takes values between -1 and 0
+      var minority_reservation_coefficient = map(reservation.value/bluePercent,0,1,-2,0);
+    }
+    else {
+      // Takes values between 0 and 1
+      var minority_reservation_coefficient = map(reservation.value/bluePercent,1,8,0,1);
+    }
+    var reservation_coefficient = -minority_reservation_coefficient;
+
+    // Values between 0 and 1
+    var education_coefficient = education_programs.scale();
+    var university_coefficient = universities.scale();
+    if (gdp.value > threshold && gdp.sign > 0){
+      var growth_coefficient = 1;  
+    }
+    else {
+      var growth_coefficient = 0;  
+    }
+
+    var mismatched_coefficient = -1*(map(mismatches.value,0,100,0,1)); // Minority only
+    var segregation_coefficient = 1-(map(segregation,0,100,0,1)); 
 
     if (!this.affirmative){
-      this.agitation = this.enrolled*5 + reservation_coefficient + education_coefficient + 
-                       aid_coefficient + university_coefficient  + segregation_coefficient + 
-                       mismatched_coefficient + growth_coefficient;
+      this.satisfaction = this.enrolled*5 + reservation_coefficient + education_coefficient + 
+                          university_coefficient  + segregation_coefficient + growth_coefficient +
+                          this.individualHappiness;
     }
     else {  
-      this.agitation = this.enrolled*5 + education_coefficient + aid_coefficient + 
-                       university_coefficient + segregation_coefficient + minority_reservation_coefficient + 
-                       mismatched_coefficient + growth_coefficient;
+      this.satisfaction = this.enrolled*5 + education_coefficient + university_coefficient + 
+                          segregation_coefficient + minority_reservation_coefficient + 
+                          mismatched_coefficient + this.individualHappiness - 3*this.mismatched + 
+                          growth_coefficient;
     }
-    if (this.agitation < this.minAgitation || this.agitation > this.maxAgitation) console.log("error");
+    this.agitation = 10-this.satisfaction;
   }
 }

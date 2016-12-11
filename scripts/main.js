@@ -16,6 +16,8 @@ var textResult;
 var textButtons;
 var textColor;
 var bottomMessage = "";
+var showLegend = false;
+var shownPerson;
 
 // Arrays
 var buttons = [];
@@ -28,6 +30,7 @@ var totalStudents;
 var bluePercent;
 var framesPerMonth = 100;
 var initialBudget = 1000;
+var threshold = 2000;
 
 // Policies
 var reservation;
@@ -70,6 +73,7 @@ function init(){
 	initializeValues();
 	initializeStudents();
 	initializeButtons();
+	update();
 }
 
 function initializeFrame(){
@@ -81,11 +85,14 @@ function initializeFrame(){
 	topBarX = 0.08*height;
 	bottomBarX = 0.9*height;
 	youSize = height*0.2;
+
+	// Text
 	textMessage = width/40;
 	textResultVal = textMessage/3;
 	textResult = textResultVal*2;
 	textButtons = textResult;
 	textColor = 125;
+	textCost = 0.8*textResultVal;
 	// font = loadFont('font-awesome/fonts/FontAwesome.otf');
 	// textFont(font);
 }
@@ -110,18 +117,18 @@ function initializeValues(){
 
 	// policies
 	reservation = new Policy("Reservation",25,0,100,1000);
-	universities = new Policy("Universities",0,0,100000,1000);
-	education_programs = new Policy("Education Programs",0,0,100000,1000);
-	aid_programs = new Policy("Aid Programs",0,0,100000,1000);
-	policies = [reservation,universities,education_programs,aid_programs];
+	universities = new Policy("Universities",700,500,900,1000);
+	education_programs = new Policy("Public Initiatives",0,0,0,0);
+	//remove this
+	policies = [reservation,universities,education_programs];
 
 	//results
-	totalStudents = 100;
+	totalStudents = 200;
 	growth_rate = 0;
 	segregation = 0;
 
 	gdp = new Result("GDP",initialBudget,-9000000,9000000);
-	mismatches = new Result("Mismatches",0,0,100);
+	mismatches = new  Result("Mismatches",0,0,100);
 	popularity = new Result("Popularity",0,0,100);
 	party_approval = new Result("Party Approval",0,0,100);
 
@@ -132,7 +139,7 @@ function initializeStudents(){
 	students = [];
 	bluePercent = 0;
 	for (var i = 0; i < totalStudents; i++){
-		var affirmativeStatus = Math.round(random(1));
+		var affirmativeStatus = random(1) < 0.15 ? true : false;
 		if (affirmativeStatus) bluePercent++;
 		var rad = width/50;
 		var enrolled = Math.round(random(1));
@@ -148,6 +155,7 @@ function initializeStudents(){
 		}
 		students.push(student);
 	}
+	bluePercent = bluePercent * 100/totalStudents;
 }
 
 function draw(){
@@ -155,7 +163,7 @@ function draw(){
 	displaySidePanel();
 	drawUniversityPanels();
 	for(var i = 0; i < totalStudents; i++){
-			students[i].display();
+			students[i].display(0);
  			students[i].move();
  			students[i].update();
 	}
@@ -166,9 +174,14 @@ function draw(){
 function update(){
 	growth_rate = universities.value;
 	segregation;
-	gdp.grow(gdp.value + growth_rate);
+	gdp.update(gdp.value + growth_rate);
 	party_approval;
-	popularity;
+	var sum = 0;
+	for(var i = 0; i < totalStudents; i++){
+			students[i].update();
+ 			sum += students[i].satisfaction * 1/students[i].maxAgitation;
+	}
+	popularity.update((sum/totalStudents)*100);
 	results = [gdp,mismatches,popularity,party_approval];	
 }
 
@@ -181,6 +194,18 @@ function drawUniversityPanels(){
 	textSize(textMessage);
 	text("Enrolled", sideBarLeftX+uniSize/2,topBarX+(bottomBarX-topBarX)*0.5);
 	text("Not Enrolled", sideBarLeftX+3*uniSize/2,topBarX+(bottomBarX-topBarX)*0.5);
+	if (showLegend){
+		shownPerson.display(1);
+		var majorityOrNot = shownPerson.affirmative == true ? "minority. " : "majority. ";
+		var mismatched = shownPerson.mismatched ? "mismatched. " : "mismatched. ";
+		var x = sideBarLeftX+2*(sideBarRightX-sideBarLeftX)/4;
+      	var y = bottomBarX+(height-bottomBarX)/2  + textMessage/4;
+      	var happiness = Math.round((shownPerson.maxAgitation - shownPerson.agitation)/shownPerson.maxAgitation * 100);
+      	push();
+      	fill(textColor);
+		text(majorityOrNot + mismatched + happiness + "% happy.",x,y);
+		pop();
+	}
 }
 
 function drawDate(){
@@ -225,7 +250,10 @@ function displaySidePanel(){
 		if (i == 0) text(policies[i].value + "%", sideBarLeftX*0.5, yVal);
 		else text(policies[i].value, sideBarLeftX*0.5, yVal);
 		textSize(textResultVal);
-		text(policies[i].name, sideBarLeftX*0.5, yVal-20);
+		text(policies[i].name, sideBarLeftX*0.5, yVal-textResult);
+		textSize(textCost);
+		fill(100,0,0);
+		text("Cost: " + policies[i].cost, sideBarLeftX*0.5, yVal+textResult);
 	}
 
 	// Right sidebar for results
@@ -234,7 +262,7 @@ function displaySidePanel(){
 		textSize(textResult);
 		var yVal = (height/5)*(i+1);
 		if (i < 1) text(results[i].value, sideBarRightX+0.5*sideBarLeftX, yVal);
-		else text(results[i].value + "%", sideBarRightX+0.5*sideBarLeftX, yVal);
+		else text(Math.round(results[i].value) + "%", sideBarRightX+0.5*sideBarLeftX, yVal);
 		textSize(textResultVal);
 		text(results[i].name, sideBarRightX+0.5*sideBarLeftX, yVal-20);
 		
@@ -293,6 +321,7 @@ function mouseReleased(){
 	for (var i = 0; i < buttons.length; i++){
 		if (buttons[i].clicked(mouseX,mouseY)) {
 			buttons[i].action();
+			showLegend = false;
 			return;
 		}
 	}
@@ -300,17 +329,23 @@ function mouseReleased(){
 	if (mouseX < sideBarLeftX-5 && mouseX > 5 && mouseY < youSize-30 && mouseY > 5){
 		profile.filter(INVERT);
 		bottomMessage = "your popularity is very low";
+		showLegend = false;
 		return;
 	}
 	// Clicked restart
 	if (mouseX < sideBarLeftX-5 && mouseX > 5 && mouseY > bottomBarX+5 && mouseY < height-5){
 		bottomMessage = "here is some text to help you";
 		init();
+		showLegend = false;
 		return;
 	}
-	var index = int(random(totalStudents));
-	if (!students[index].enrolled) students[index].enroll();
-	else students[index].dropOut();
+	for (var i = 0; i < totalStudents; i++){
+		if (students[i].clicked(mouseX,mouseY)) {
+			students[i].show();
+			return;
+		}
+	}
+	showLegend = false;
 }
 
 /* Articles 

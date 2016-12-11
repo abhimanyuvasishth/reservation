@@ -16,7 +16,7 @@ var Result = function(name,value,lower,upper){
   	else this.sign = -1;
   }
 
-  this.grow = function(new_value){
+  this.update = function(new_value){
   	this.compare(new_value,this.value);
   	this.value = new_value;
   }

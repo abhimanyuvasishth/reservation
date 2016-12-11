@@ -4,12 +4,22 @@ var Policy = function(name,value,lower,upper,cost){
   this.lower = lower;
   this.upper = upper;
   this.cost = cost;
-  this.percent = (this.upper == 100 && this.lower == 0) ? true : false;
+  this.type;
+  
+  if (this.upper == 100 && this.lower == 0){
+  	this.type = "percent";
+  }
+  else if (this.upper == 0 && this.lower == 0){
+  	this.type = "boost";	
+  }
+  else {
+  	this.type = "numeric";
+  }
 
   this.update = function(sign){
     if (sign > 0 && this.value < this.upper) {
     	this.value++;
-    	gdp.grow(gdp.value-this.cost);
+    	gdp.update(gdp.value-this.cost);
    	}
     else if (sign < 0 && this.value > this.lower) {
     	this.value--;
@@ -17,13 +27,12 @@ var Policy = function(name,value,lower,upper,cost){
   }
 
   this.scale = function(){
-  	if (this.percent){
+  	if (this.type == "percent"){
   		return this.value/100;
   	}
-  	else {
-  		return 1;
-  		// if (gdp < initialBudget) return (this.value*this.cost)/initialBudget;
-  		// else return (this.value*this.cost)/gdp.value;
+  	else if (this.type == "numeric"){
+  		return map(this.value,this.lower,this.upper,-1,1);
   	}
+  	else return 0;
   }
 }
