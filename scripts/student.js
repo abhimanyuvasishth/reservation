@@ -6,7 +6,8 @@ var Student = function(x,y,rad,affirmative,enrolled){
   this.enrolled = enrolled;
   this.color;
 
-  this.initializeTime = frameCount;
+  this.initializeMonth = cur_month;
+  this.initializeYear = cur_year;
 
   this.maxAgitation = 10;
   this.minAgitation = 0;
@@ -19,6 +20,7 @@ var Student = function(x,y,rad,affirmative,enrolled){
   this.newPoint = [this.x,this.y];
   this.transitioning = false;
   this.speed = [0,0];
+  this.speedCoefficient = 30;
 
   this.individualHappiness = random(1);
 
@@ -50,14 +52,35 @@ var Student = function(x,y,rad,affirmative,enrolled){
       rect(x, y, this.rad, this.rad, curve,curve,0,0);
     }
 
+    // Draw graduated
     fill(0);
     if (this.graduated){
       rect(x,y-this.rad*0.5,this.rad/5,this.rad*0.2);
       rect(x,y-this.rad*0.6,this.rad*1.2,this.rad*0.1);
     }
 
-    ellipse(x-0.25*this.rad, y-0.25*this.rad,this.rad/5,this.rad/5);
-    ellipse(x+0.25*this.rad, y-0.25*this.rad,this.rad/5,this.rad/5);
+    if (this.isNew()){
+      push();
+      fill(0,200,0);
+      ellipse(x,y-rad/2,rad/5,rad/5);
+      pop();
+    }
+
+    // Draw mismatched
+    if (this.mismatched){
+      push();
+      stroke(0);
+      strokeWeight(1);
+      line(x-0.375*this.rad,y-0.125*this.rad,x-0.125*this.rad,y-0.375*this.rad);
+      line(x-0.375*this.rad,y-0.375*this.rad,x-0.125*this.rad,y-0.125*this.rad);
+      line(x+0.375*this.rad,y-0.125*this.rad,x+0.125*this.rad,y-0.375*this.rad);
+      line(x+0.375*this.rad,y-0.375*this.rad,x+0.125*this.rad,y-0.125*this.rad);  
+      pop();
+    }
+    else {
+      ellipse(x-0.25*this.rad, y-0.25*this.rad,this.rad/5,this.rad/5);
+      ellipse(x+0.25*this.rad, y-0.25*this.rad,this.rad/5,this.rad/5);
+    }
 
     // Happy arc
     if (this.agitation < this.maxAgitation/3) {
@@ -77,8 +100,14 @@ var Student = function(x,y,rad,affirmative,enrolled){
     pop();
   }
 
+  this.isNew = function(){
+    return (this.time() < 2 && !(this.initializeMonth == month() && this.initializeYear == year()));
+  }
+
   this.time = function(){
-    frameCount - this.initializeTime;
+    var yearDiff = cur_year-this.initializeYear;
+    var monthDiff = cur_month-this.initializeMonth;
+    return yearDiff*12+monthDiff;
   }
 
   this.clicked = function(mousex,mousey){
@@ -87,13 +116,7 @@ var Student = function(x,y,rad,affirmative,enrolled){
   }
 
   this.move = function(){
-    if (!this.transitioning){
-      // push();
-      // if (this.enrolled) this.y += sin(frameCount);
-      // else this.x += 0.5*this.agitation*sin(frameCount);
-      // pop();
-    }
-    else {
+    if (this.transitioning) {
       this.y += this.speed[1];
       this.x += this.speed[0];
       if (this.newPoint[0] < this.x+5 && this.newPoint[0] > this.x-5 && 
@@ -123,9 +146,9 @@ var Student = function(x,y,rad,affirmative,enrolled){
   this.graduate = function(){
     this.transitioning = true;
     this.graduated = true;
-    this.newPoint[0] = sideBarLeftX-this.rad;
+    this.newPoint[0] = sideBarLeftX;
     this.newPoint[1] = this.y;
-    this.speed = [(this.newPoint[0]-this.x)/10,(this.newPoint[1]-this.y)/10];
+    this.speed = [(this.newPoint[0]-this.x)/this.speedCoefficient,(this.newPoint[1]-this.y)/this.speedCoefficient];
   }
 
   this.join = function(){
@@ -142,7 +165,7 @@ var Student = function(x,y,rad,affirmative,enrolled){
     if (!this.transitioning){
       this.newPoint[0] = int(random(width-sideBarLeftX-uniSize+2*rad,sideBarRightX-rad));
       this.newPoint[1] = int(random(topBarX+rad,bottomBarX-rad));
-      this.speed = [(this.newPoint[0]-this.x)/10,(this.newPoint[1]-this.y)/10];
+      this.speed = [(this.newPoint[0]-this.x)/this.speedCoefficient,(this.newPoint[1]-this.y)/this.speedCoefficient];
       this.transitioning = true;
       this.enrolled = false;
     }
@@ -167,7 +190,6 @@ var Student = function(x,y,rad,affirmative,enrolled){
     var reservation_coefficient = -minority_reservation_coefficient;
 
     // Values between 0 and 1
-    var education_coefficient = education_programs.scale();
     var university_coefficient = universities.scale();
     if (gdp.value > threshold && gdp.sign > 0){
       var growth_coefficient = 1;  
@@ -177,18 +199,15 @@ var Student = function(x,y,rad,affirmative,enrolled){
     }
 
     var mismatched_coefficient = -1*(map(mismatches.value,0,100,0,1)); // Minority only
-    var segregation_coefficient = 1-(map(segregation,0,100,0,1)); 
 
     if (!this.affirmative){
-      this.satisfaction = this.enrolled*5 + reservation_coefficient + education_coefficient + 
-                          university_coefficient  + segregation_coefficient + growth_coefficient +
-                          this.individualHappiness;
+      this.satisfaction = this.enrolled*5 + reservation_coefficient + university_coefficient +
+                          growth_coefficient + this.individualHappiness;
     }
     else {  
-      this.satisfaction = this.enrolled*5 + education_coefficient + university_coefficient + 
-                          segregation_coefficient + minority_reservation_coefficient + 
-                          mismatched_coefficient + this.individualHappiness - 3*this.mismatched + 
-                          growth_coefficient;
+      this.satisfaction = this.enrolled*5 + university_coefficient + growth_coefficient +
+                          minority_reservation_coefficient + mismatched_coefficient + 
+                          this.individualHappiness - 3*this.mismatched;
     }
     this.agitation = 10-this.satisfaction;
   }

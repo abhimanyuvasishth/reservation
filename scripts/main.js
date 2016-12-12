@@ -18,6 +18,9 @@ var textColor;
 var bottomMessage = "";
 var showLegend = false;
 var shownPerson;
+var partyFill;
+var yellow;
+var blue;
 
 // Arrays
 var buttons = [];
@@ -30,15 +33,16 @@ var messages = [];
 var previous_voters;
 var totalStudents;
 var bluePercent;
+var theoreticalBluePercent = 15;
 var framesPerMonth = 100;
 var initialBudget = 1000;
-var threshold = 2000;
+var threshold = 0;
+var initialReservation = 25;
 
 // Policies
 var reservation;
 var universities;
-var education_programs;
-var aid_programs;
+var public_incentive_boost;
 
 // Results
 var gdp;
@@ -47,7 +51,6 @@ var popularity;
 var party_approval;
 
 // Other results
-var segregation;
 var growth_rate;
 var graduates;
 
@@ -75,6 +78,7 @@ function init(){
 	initializeValues();
 	initializeStudents();
 	initializeButtons();
+	partyFill = random(1) < 0.5 ? blue : yellow;
 	update();
 }
 
@@ -87,6 +91,8 @@ function initializeFrame(){
 	topBarX = 0.08*height;
 	bottomBarX = 0.9*height;
 	youSize = height*0.2;
+	yellow = color(255,255,0);
+	blue = color(50,50,255);
 
 	// Text
 	textMessage = width/40;
@@ -138,16 +144,15 @@ function initializeValues(){
 	cur_year = year();
 
 	// policies
-	reservation = new Policy("Reservation",25,0,100,1000);
+	reservation = new Policy("Reservation",initialReservation,0,100,1000);
 	universities = new Policy("Universities",700,500,900,1000);
-	education_programs = new Policy("Public Initiatives",0,0,0,1000);
+	public_incentive_boost = new Policy("Public Initiatives",0,0,0,1000);
 	//remove this
-	policies = [reservation,universities,education_programs];
+	policies = [reservation,universities,public_incentive_boost];
 
 	//results
 	totalStudents = 200;
 	growth_rate = 0;
-	segregation = 0;
 
 	gdp = new Result("GDP",initialBudget,-9000000,9000000);
 	mismatches = new  Result("Mismatches",0,0,100);
@@ -161,10 +166,17 @@ function initializeStudents(){
 	students = [];
 	bluePercent = 0;
 	for (var i = 0; i < totalStudents; i++){
-		var affirmativeStatus = random(1) < 0.15 ? true : false;
+		var affirmativeStatus = random(1) < theoreticalBluePercent/100 ? true : false;
+		var rand = random(1);
 		if (affirmativeStatus) bluePercent++;
 		var rad = width/50;
-		var enrolled = Math.round(random(1));
+		if (!affirmativeStatus){
+			var enrolled = rand < 0.5 ? true : false;
+		}
+		else {
+			var mappedReservation = initialReservation < theoreticalBluePercent ? map(initialReservation,0,theoreticalBluePercent,-0.25,0) : map(initialReservation,theoreticalBluePercent,100,0,0.25);
+			var enrolled = rand < 0.5 + mappedReservation ? true : false;	
+		}
 		if (enrolled){
 			var student = new Student(random(sideBarLeftX+rad,sideBarRightX-rad-uniSize),
 								  random(topBarX+rad,bottomBarX-rad),
@@ -195,7 +207,14 @@ function draw(){
 
 function update(){
 	growth_rate = universities.value;
-	segregation;
+
+	// Graduate
+	var ind = int(random(totalStudents));
+	while (!students[ind].enrolled){
+		ind = int(random(totalStudents));
+	}
+	students[ind].graduate();
+
 	gdp.update(gdp.value + growth_rate);
 	party_approval;
 	var sum = 0;
@@ -222,18 +241,27 @@ function drawUniversityPanels(){
 		var mismatched = shownPerson.mismatched ? "mismatched. " : "";
 		var graduated = shownPerson.graduated ? "graduated. " : "";
 		var x = sideBarLeftX+2*(sideBarRightX-sideBarLeftX)/4;
+		var newP = shownPerson.isNew() == true ? "new. " : "";
       	var y = bottomBarX+(height-bottomBarX)/2  + textMessage/4;
       	var happiness = Math.round((shownPerson.maxAgitation - shownPerson.agitation)/shownPerson.maxAgitation * 100);
       	push();
       	fill(textColor);
-		text(majorityOrNot + mismatched + graduated + happiness + "% happy.",x,y);
+		text(majorityOrNot + mismatched + newP + graduated + happiness + "% happy.",x,y);
 		pop();
 	}
 }
 
 function createNewStudent(index){
 	var rad = (index > 1) ? students[0].rad : students[1].rad;
-	var student = new Student(sideBarRightX,random(topBarX,bottomBarX), rad, true, false);
+	var affirmative = random(1) < bluePercent/100 ? true : false;
+	var rand = random(1);
+	if (!affirmative){
+		var enrollment = rand < (universities.scale()*25+50)/100 ? true : false;
+	}
+	else {
+		var enrollment = rand < (universities.scale()*25+50)/100 + map(reservation.value,0,100,0,25) ? true : false;
+	}
+	var student = new Student(sideBarRightX,random(topBarX,bottomBarX), rad, affirmative, enrollment);
 	students.splice(index, 0, student);
 	students[index].join();
 	showLegend = false;
@@ -256,7 +284,7 @@ function drawDate(){
 }
 
 function drawMessage(){
-	fill(textColor);
+  fill(textColor);
   textSize(textMessage);
   textAlign(CENTER);
   noStroke();
@@ -324,8 +352,8 @@ function createProfile(){
 	push();
 	fill(100,0,0);
 	noFill();
-	fill(200);
-	rect(5,5,sideBarLeftX-10,youSize-30,5,5);
+	fill(partyFill);
+	rect(textResultVal/2,textResultVal/2,sideBarLeftX-textResultVal,profile.height+1.5*textResult,textResultVal,textResultVal);
 	pop();
 	fill(0);
 	image(profile,profile.x,profile.y);
@@ -395,9 +423,7 @@ function mouseReleased(){
 	for (var i = 0; i < totalStudents; i++){
 		if (students[i].clicked(mouseX,mouseY)) {
 			students[i].show();
-			if (students[i].enrolled){
-				students[i].graduate();
-			}
+			console.log(students[i].time());
 			return;
 		}
 	}
