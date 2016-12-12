@@ -16,6 +16,9 @@ var Student = function(x,y,rad,affirmative,enrolled){
   this.agitation = 0;
 
   this.mismatched = false;
+  this.mismatchedMonth;
+  this.mismatchedYear;
+
   this.graduated = false;
   this.newPoint = [this.x,this.y];
   this.transitioning = false;
@@ -101,12 +104,12 @@ var Student = function(x,y,rad,affirmative,enrolled){
   }
 
   this.isNew = function(){
-    return (this.time() < 2 && !(this.initializeMonth == month() && this.initializeYear == year()));
+    return (this.time(this.initializeYear,this.initializeMonth) < 2 && !(this.initializeMonth == month() && this.initializeYear == year()));
   }
 
-  this.time = function(){
-    var yearDiff = cur_year-this.initializeYear;
-    var monthDiff = cur_month-this.initializeMonth;
+  this.time = function(year,month){
+    var yearDiff = cur_year-year;
+    var monthDiff = cur_month-month;
     return yearDiff*12+monthDiff;
   }
 
@@ -134,7 +137,7 @@ var Student = function(x,y,rad,affirmative,enrolled){
   }
 
   this.enroll = function(){
-    if (!this.transitioning){
+    if (!this.transitioning && !this.mismatched){
       this.newPoint[0] = int(random(sideBarLeftX+rad,sideBarRightX-rad-uniSize));
       this.newPoint[1] = int(random(topBarX+rad,bottomBarX-rad));
       this.speed = [(this.newPoint[0]-this.x)/10,(this.newPoint[1]-this.y)/10];
@@ -148,6 +151,7 @@ var Student = function(x,y,rad,affirmative,enrolled){
     this.graduated = true;
     this.newPoint[0] = sideBarLeftX;
     this.newPoint[1] = this.y;
+    this.mismatched = false;
     this.speed = [(this.newPoint[0]-this.x)/this.speedCoefficient,(this.newPoint[1]-this.y)/this.speedCoefficient];
   }
 
@@ -161,7 +165,12 @@ var Student = function(x,y,rad,affirmative,enrolled){
     }
   }
 
-  this.dropOut = function(){
+  this.dropOut = function(mismatched){
+    if (mismatched == true && this.graduated == false && this.enrolled == true) {
+      this.mismatched = true;
+      this.mismatchedYear = cur_year;
+      this.mismatchedMonth = cur_month;
+    }
     if (!this.transitioning){
       this.newPoint[0] = int(random(width-sideBarLeftX-uniSize+2*rad,sideBarRightX-rad));
       this.newPoint[1] = int(random(topBarX+rad,bottomBarX-rad));
@@ -178,32 +187,34 @@ var Student = function(x,y,rad,affirmative,enrolled){
   }
 
   this.update = function(){
-    // Values between 0 and 1. Opposite for majority and minority
-    if (reservation.value/bluePercent <= 1){
-      // Takes values between -1 and 0
-      var minority_reservation_coefficient = map(reservation.value/bluePercent,0,1,-2,0);
-    }
-    else {
-      // Takes values between 0 and 1
-      var minority_reservation_coefficient = map(reservation.value/bluePercent,1,8,0,1);
-    }
-    var reservation_coefficient = -minority_reservation_coefficient;
+    if (this.time(this.mismatchedYear,this.mismatchedMonth) > 3) this.mismatched = false;
+    
+  //   // Values between 0 and 1. Opposite for majority and minority
+  //   if (reservation.value/theoreticalBluePercent <= 1){
+  //     // Takes values between -1 and 0
+  //     var minority_reservation_coefficient = map(reservation.value/theoreticalBluePercent,0,1,-2,0);
+  //   }
+  //   else {
+  //     // Takes values between 0 and 1
+  //     var minority_reservation_coefficient = map(reservation.value/bluePercent,1,8,0,1);
+  //   }
+  //   var reservation_coefficient = -minority_reservation_coefficient;
 
-    // Values between 0 and 1
-    var university_coefficient = universities.scale();
-    growth_coefficient = gdp.value > threshold;
+  //   // Values between 0 and 1
+  //   var university_coefficient = universities.scale();
+  //   growth_coefficient = gdp.value > threshold;
 
-    var mismatched_coefficient = -1*(map(mismatches.value,0,100,0,1)); // Minority only
+  //   var mismatched_coefficient = -1*(map(mismatches.value,0,100,0,1)); // Minority only
 
-    if (!this.affirmative){
-      this.satisfaction = this.enrolled*5 + reservation_coefficient + university_coefficient +
-                          growth_coefficient + this.individualHappiness;
-    }
-    else {  
-      this.satisfaction = this.enrolled*5 + university_coefficient + growth_coefficient +
-                          minority_reservation_coefficient + mismatched_coefficient + 
-                          this.individualHappiness - 3*this.mismatched;
-    }
-    this.agitation = 10-this.satisfaction;
+  //   if (!this.affirmative){
+  //     this.satisfaction = this.enrolled*5 + reservation_coefficient + university_coefficient +
+  //                         growth_coefficient + this.individualHappiness;
+  //   }
+  //   else {  
+  //     this.satisfaction = this.enrolled*5 + university_coefficient + growth_coefficient +
+  //                         minority_reservation_coefficient + mismatched_coefficient + 
+  //                         this.individualHappiness - 3*this.mismatched;
+  //   }
+  //   this.agitation = 10-this.satisfaction;
   }
 }

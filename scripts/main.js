@@ -38,6 +38,9 @@ var framesPerMonth = 100;
 var initialBudget = 1000;
 var threshold = 10*initialBudget;
 var initialReservation = 25;
+var withoutReservation = 5;
+var regularDropOutRate = 2;
+var percentSeats = 50;
 
 // Policies
 var reservation;
@@ -83,7 +86,6 @@ function init(){
 	initializeValues();
 	initializeStudents();
 	initializeButtons();
-	update();
 }
 
 function initializeFrame(){
@@ -159,7 +161,7 @@ function initializeValues(){
 	restart_message = "Game restarted";
 
 	// policies
-	reservation = new Policy("Reservation",initialReservation,0,100,1000);
+	reservation = new Policy("Reservation",initialReservation,0,100,0);
 	universities = new Policy("Universities",700,500,900,1000);
 	public_incentive_boost = new Policy("Public Initiatives",0,0,0,1000);
 	//remove this
@@ -175,7 +177,7 @@ function initializeValues(){
 	var party_approval_message = "Keep your party happy and keep your job";
 
 	gdp = new Result("GDP",initialBudget,-10000,100000,gdp_message);
-	mismatches = new  Result("Mismatches",0,0,100,mismatch_message);
+	mismatches = new  Result("Mismatch Rate",5,0,100,mismatch_message);
 	popularity = new Result("Popularity",0,0,100,popularity_message);
 	party_approval = new Result("Party Approval",50,0,100,party_approval_message);
 
@@ -184,23 +186,37 @@ function initializeValues(){
 
 function initializeStudents(){
 	students = [];
-	bluePercent = 0;
-	for (var i = 0; i < totalStudents; i++){
-		var affirmativeStatus = random(1) < theoreticalBluePercent/100 ? true : false;
-		var rand = random(1);
-		if (affirmativeStatus) bluePercent++;
-		var rad = width/50;
-		if (!affirmativeStatus){
-			var enrolled = rand < 0.5 ? true : false;
+	var totalSeats = 0.5*totalStudents;
+	var reservedSeats = initialReservation/100*totalSeats;
+	var seatCounter = reservedSeats;
+	var rad = width/50;
+
+	for (var i = 0; i < reservedSeats; i++){
+		var student = new Student(random(sideBarLeftX+rad,sideBarRightX-rad-uniSize),
+								  random(topBarX+rad,bottomBarX-rad),
+								  rad, true, true);
+		students.push(student);		
+	}
+
+	for (var i = 0; i < totalStudents-reservedSeats; i++){
+		var affirmativeStatus = random(1) < theoreticalBluePercent/100 - reservedSeats/totalStudents ? true : false;
+		var lottery = random(1);
+		if (seatCounter < totalSeats){
+			if (affirmativeStatus == true){
+				var enrolled = lottery < withoutReservation/100 ? true : false;
+			}
+			else {
+				var enrolled = true;		
+			}
 		}
 		else {
-			var mappedReservation = initialReservation < theoreticalBluePercent ? map(initialReservation,0,theoreticalBluePercent,-0.25,0) : map(initialReservation,theoreticalBluePercent,100,0,0.25);
-			var enrolled = rand < 0.5 + mappedReservation ? true : false;	
+			var enrolled = false;
 		}
-		if (enrolled){
+		if (enrolled == true){
 			var student = new Student(random(sideBarLeftX+rad,sideBarRightX-rad-uniSize),
 								  random(topBarX+rad,bottomBarX-rad),
-								  rad, affirmativeStatus, true);		
+								  rad, affirmativeStatus, true);
+			seatCounter++;		
 		}
 		else {
 			var student = new Student(random(width-sideBarLeftX-uniSize+2*rad,sideBarRightX-rad),
@@ -209,7 +225,22 @@ function initializeStudents(){
 		}
 		students.push(student);
 	}
-	bluePercent = bluePercent * 100/totalStudents;
+	students = shuffleArray(students);
+}
+
+/**
+ * Randomize array element order in-place.
+ * Using Durstenfeld shuffle algorithm.
+ * http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+ */
+function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+    return array;
 }
 
 function draw(){
@@ -219,22 +250,36 @@ function draw(){
 	for(var i = 0; i < totalStudents; i++){
 			students[i].display(0);
  			students[i].move();
- 			students[i].update();
 	}
 	drawDate();
 	drawMessage();
 }
 
 function update(){
-	growth_rate = universities.value;
-
-	// Graduate
-	var ind = int(random(totalStudents));
-	while (!students[ind].enrolled){
-		ind = int(random(totalStudents));
+	if (reservation.value < theoreticalBluePercent){
+		var mismatched_val = map(reservation.value,0,theoreticalBluePercent,0,2);	
 	}
-	students[ind].graduate();
+	else {
+		var mismatched_val = map(reservation.value,theoreticalBluePercent,reservation.upper,3,20);	
+	}
+	mismatches.update(mismatched_val);
 
+	calculatePopularity();
+
+	// growth_rate = universities.value;
+	// gdp.update(gdp.value + growth_rate);
+	// party_approval;
+	// var sum = 0;
+	// for(var i = 0; i < totalStudents; i++){
+	// 		students[i].update();
+ // 			sum += students[i].satisfaction * 1/students[i].maxAgitation;
+	// }
+	// popularity.update((sum/totalStudents)*100);
+	// results = [gdp,mismatches,popularity,party_approval];	
+}
+
+function monthlyGrow(){
+	growth_rate = universities.value;
 	gdp.update(gdp.value + growth_rate);
 	party_approval;
 	var sum = 0;
@@ -243,7 +288,73 @@ function update(){
  			sum += students[i].satisfaction * 1/students[i].maxAgitation;
 	}
 	popularity.update((sum/totalStudents)*100);
-	results = [gdp,mismatches,popularity,party_approval];	
+	results = [gdp,mismatches,popularity,party_approval];
+}
+
+function createCopy(array){
+	var copy = [];
+	for (var i = 0; i < array.length; i++){
+		copy.push(array[i]);
+	}
+	return copy;
+}
+
+function movePeople(){
+	var studentsCopy = createCopy(students);
+	studentsCopy = shuffleArray(studentsCopy);
+	var totalSeats = computeTotalSeats();
+	var numGraduatesPerMonth = 1;
+	var graduateCounter = 0;
+
+	// Graduate
+	for (var i = 0; i < totalStudents; i++){
+		if (studentsCopy[i].enrolled && !studentsCopy[i].transitioning){
+			studentsCopy[i].graduate();
+			if (graduateCounter = numGraduatesPerMonth){
+				break;
+			}
+		}
+	}
+
+	// Drop out based on mismatch rate
+	for (var i = 0; i < totalStudents; i++){
+		if (studentsCopy[i].affirmative == true && studentsCopy[i].enrolled && !studentsCopy[i].transitioning){
+			if (random(1) < mismatches.value/100){
+				studentsCopy[i].dropOut(true);
+			}
+		}
+	}
+
+	// Drop out regular
+	for (var i = 0; i < totalStudents; i++){
+		if (studentsCopy[i].affirmative == false && studentsCopy[i].enrolled && !studentsCopy[i].transitioning){
+			if (random(1) < regularDropOutRate/100){
+				studentsCopy[i].dropOut();
+			}
+		}
+	}
+
+	// Enroll if space is available. First reserved seats fill up.
+	for (var i = 0; i < totalStudents; i++){
+		if (studentsCopy[i].affirmative == true && !studentsCopy[i].enrolled && !studentsCopy[i].transitioning){
+			if (computeReservedSeats() < reservation.value*totalSeats && totalSeats-computeTakenSeats() > 0){
+				studentsCopy[i].enroll();
+			}
+		}
+	}
+
+	// Then total seats fill up.
+	for (var i = 0; i < totalStudents; i++){
+		if (studentsCopy[i].affirmative == false && !studentsCopy[i].enrolled && !studentsCopy[i].transitioning){
+			if (totalSeats-computeTakenSeats() > 0){
+				studentsCopy[i].enroll();
+			}
+		}
+	}
+
+	console.log(totalSeats);
+	console.log(computeTakenSeats());
+	console.log(computeReservedSeats());
 }
 
 function drawUniversityPanels(){
@@ -273,18 +384,46 @@ function drawUniversityPanels(){
 
 function createNewStudent(index){
 	var rad = (index > 1) ? students[0].rad : students[1].rad;
-	var affirmative = random(1) < bluePercent/100 ? true : false;
-	var rand = random(1);
-	if (!affirmative){
-		var enrollment = rand < (universities.scale()*25+50)/100 ? true : false;
-	}
-	else {
-		var enrollment = rand < (universities.scale()*25+50)/100 + map(reservation.value,0,100,0,25) ? true : false;
-	}
+	var affirmative = random(1) < theoreticalBluePercent/100 ? true : false;
+	var enrollment = false;
 	var student = new Student(sideBarRightX,random(topBarX,bottomBarX), rad, affirmative, enrollment);
 	students.splice(index, 0, student);
 	students[index].join();
 	showLegend = false;
+}
+
+function computeTotalSeats(){
+	return universities.scale()*percentSeats/2+percentSeats*totalStudents/100;
+}
+
+function computeBluePercent(){
+	var count = 0;
+	for (var i = 0; i < totalStudents; i++){
+		if (students[i].affirmative == true){
+			count++;
+		}
+	}
+	return count*100/totalStudents;
+}
+
+function computeReservedSeats(){
+	var count = 0;
+	for (var i = 0; i < totalStudents; i++){
+		if (students[i].affirmative == true && students[i].enrolled == true){
+			count++;
+		}
+	}
+	return count;
+}
+
+function computeTakenSeats(){
+	var count = 0;
+	for (var i = 0; i < totalStudents; i++){
+		if (students[i].enrolled == true){
+			count++;
+		}
+	}
+	return count;
 }
 
 function drawDate(){
@@ -293,7 +432,8 @@ function drawDate(){
   textAlign(CENTER);
   noStroke();
   if (frameCount % framesPerMonth == 0){
-  	update();
+  	monthlyGrow();
+  	movePeople();
   	cur_month ++;
   	if (cur_month > 12) {
   		cur_month = 1;
@@ -350,14 +490,16 @@ function displaySidePanel(){
 		// Status triangles
 		if (results[i].sign > 0){
 			// green triangle
-			fill(0,175,0);
+			if (i != 1) fill(0,175,0);
+			else fill(175,0,0);
 			triangle(sideBarRightX+0.5*sideBarLeftX-textResultVal, yVal+textResult,
 						 sideBarRightX+0.5*sideBarLeftX+textResultVal, yVal+textResult,
 						 sideBarRightX+0.5*sideBarLeftX, yVal+textResultVal/2);
 		}
 		else if (results[i].sign < 0){
 			// red triangle
-			fill(175,0,0);
+			if (i == 1) fill(0,175,0);
+			else fill(175,0,0);
 			triangle(sideBarRightX+0.5*sideBarLeftX-textResultVal, yVal+textResultVal/2,
 						 sideBarRightX+0.5*sideBarLeftX+textResultVal, yVal+textResultVal/2,
 						 sideBarRightX+0.5*sideBarLeftX, yVal+textResult);
@@ -406,6 +548,7 @@ function mouseReleased(){
 		if (buttons[i].clicked(mouseX,mouseY)) {
 			buttons[i].action();
 			showLegend = false;
+			update();
 			return;
 		}
 	}
