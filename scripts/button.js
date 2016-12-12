@@ -70,7 +70,7 @@ var Button = function(id,x,y,policy,side){
     }
     // Result button
     else if (this.policy == null){
-      console.log("clicked " + this.id);
+      results[this.id].displayInfo();
     }
   }
 }

@@ -36,7 +36,7 @@ var bluePercent;
 var theoreticalBluePercent = 15;
 var framesPerMonth = 100;
 var initialBudget = 1000;
-var threshold = 0;
+var threshold = 10*initialBudget;
 var initialReservation = 25;
 
 // Policies
@@ -49,6 +49,11 @@ var gdp;
 var mismatches;
 var popularity;
 var party_approval;
+
+// Messages
+var party_message;
+var help_message;
+var restart_message;
 
 // Other results
 var growth_rate;
@@ -78,7 +83,6 @@ function init(){
 	initializeValues();
 	initializeStudents();
 	initializeButtons();
-	partyFill = random(1) < 0.5 ? blue : yellow;
 	update();
 }
 
@@ -142,6 +146,17 @@ function initializeValues(){
 	// date
 	cur_month = month();
 	cur_year = year();
+	partyFill = random(1) < 0.5 ? blue : yellow;
+
+	// messages
+	if (partyFill == yellow){
+		party_message = "Your party is yellow";
+	}
+	else {
+		party_message = "Your party is blue";
+	}
+	help_message = "Click on the 'i' icons or 'you' or the students";
+	restart_message = "Game restarted";
 
 	// policies
 	reservation = new Policy("Reservation",initialReservation,0,100,1000);
@@ -154,10 +169,15 @@ function initializeValues(){
 	totalStudents = 200;
 	growth_rate = 0;
 
-	gdp = new Result("GDP",initialBudget,-9000000,9000000);
-	mismatches = new  Result("Mismatches",0,0,100);
-	popularity = new Result("Popularity",0,0,100);
-	party_approval = new Result("Party Approval",0,0,100);
+	var gdp_message = "Keep making money";
+	var mismatch_message = "Students cannot always cope with college academics";
+	var popularity_message = "Keep the people happy";
+	var party_approval_message = "Keep your party happy and keep your job";
+
+	gdp = new Result("GDP",initialBudget,-10000,100000,gdp_message);
+	mismatches = new  Result("Mismatches",0,0,100,mismatch_message);
+	popularity = new Result("Popularity",0,0,100,popularity_message);
+	party_approval = new Result("Party Approval",50,0,100,party_approval_message);
 
 	results = [gdp,mismatches,popularity,party_approval];
 }
@@ -399,8 +419,7 @@ function mouseReleased(){
 	}
 	// Clicked on you
 	if (mouseX < sideBarLeftX-5 && mouseX > 5 && mouseY < youSize-30 && mouseY > 5){
-		profile.filter(INVERT);
-		bottomMessage = "your popularity is very low";
+		bottomMessage = party_message;
 		showLegend = false;
 		return;
 	}
@@ -408,14 +427,14 @@ function mouseReleased(){
 	if (mouseX < sideBarLeftX-textResultVal/2 && mouseX > textResultVal/2 && mouseY > bottomBarX+textResultVal/2 && mouseY < height-textResultVal/2){
 		if (mouseX < sideBarLeftX*0.5){
 			// Restarted
-			bottomMessage = "restarted";
+			bottomMessage = restart_message;
 			init();
 			showLegend = false;
 			return;
 		}
 		else {
 			// Restarted
-			bottomMessage = "help 4 u";
+			bottomMessage = help_message;
 			showLegend = false;
 			return;	
 		}

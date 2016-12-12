@@ -1,8 +1,9 @@
-var Result = function(name,value,lower,upper){
+var Result = function(name,value,lower,upper,message){
   this.name = name;
   this.value = value;
   this.lower = lower;
   this.upper = upper;
+  this.message = message;
   this.sign = 0;
 
   this.check = function(number){
@@ -19,5 +20,9 @@ var Result = function(name,value,lower,upper){
   this.update = function(new_value){
   	this.compare(new_value,this.value);
   	this.value = new_value;
+  }
+
+  this.displayInfo = function(){
+     bottomMessage = this.message;
   }
 }

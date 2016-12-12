@@ -191,12 +191,7 @@ var Student = function(x,y,rad,affirmative,enrolled){
 
     // Values between 0 and 1
     var university_coefficient = universities.scale();
-    if (gdp.value > threshold && gdp.sign > 0){
-      var growth_coefficient = 1;  
-    }
-    else {
-      var growth_coefficient = 0;  
-    }
+    growth_coefficient = gdp.value > threshold;
 
     var mismatched_coefficient = -1*(map(mismatches.value,0,100,0,1)); // Minority only
 
