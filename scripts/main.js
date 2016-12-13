@@ -16,6 +16,7 @@ var textResult;
 var textButtons;
 var textColor;
 var bottomMessage = "";
+var endMessage = "";
 var showLegend = false;
 var shownPerson;
 var partyFill;
@@ -30,7 +31,7 @@ var policies = [];
 var results = [];
 var messages = [];
 
-var pause = false;
+var pause = true;
 var previous_voters;
 var totalStudents;
 var bluePercent;
@@ -266,14 +267,24 @@ function shuffleArray(array) {
 
 function draw(){
 	background(250);
-	displaySidePanel();
 	if (!pause){
+		displaySidePanel();
 		drawUniversityPanels();
 		for(var i = 0; i < totalStudents; i++){
 			students[i].display(0);
  			students[i].move();
 		}
 		drawDate();
+	}
+	else {
+		push();
+		textAlign(CENTER);
+		fill(textColor);
+		textSize(textMessage);
+		bottomMessage = "";
+		text(endMessage, width/2,height/4);
+		text("Click to play", width/2,height/2);
+		pop();
 	}
 	drawMessage();
 }
@@ -332,13 +343,19 @@ function calculatePopularity(){
 }
 
 function calculatePartyApproval(){
-	if (partyFill == yellow){
-		
+	var gdp_coefficient = map(gdp.value,gdp.lower,gdp.upper,0,1);
+	if (reservation.value <= theoreticalBluePercent){
+		var reservation_coefficient = map(reservation.value,0,theoreticalBluePercent,0,0.5);	
 	}
 	else {
-		
+		var reservation_coefficient = map(reservation.value,theoreticalBluePercent,100,0.5,1);	
 	}
-	return 50;
+	if (partyFill == yellow){
+		return 50*gdp_coefficient + (1-reservation_coefficient)*50;
+	}
+	else {
+		return 50*gdp_coefficient + reservation_coefficient*50;	
+	}
 }
 
 function createCopy(array){
@@ -601,7 +618,8 @@ function endgame(result){
 	else if (result.value >= result.upper){
 		var message = result.tooMuchMessage;
 	}
-	bottomMessage = message;	
+	bottomMessage = message;
+	endMessage = message;	
 	pause = true;
 }
 
@@ -610,6 +628,14 @@ function endgame(result){
 // }
 
 function mouseReleased(){
+	// Play
+	if (mouseX < width && mouseY < height && mouseY > 0 && mouseX > 0 && pause == true){
+		init();
+		showLegend = false;
+		pause = false;
+		return;
+	}
+
 	// Clicked a button
 	for (var i = 0; i < buttons.length; i++){
 		if (buttons[i].clicked(mouseX,mouseY)) {
