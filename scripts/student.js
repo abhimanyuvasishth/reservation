@@ -191,14 +191,14 @@ var Student = function(x,y,rad,affirmative,enrolled){
 
     // Values between 0 and 1. Opposite for majority and minority
     if (reservation.value/theoreticalBluePercent <= 1){
-      // Takes values between -1 and 0
-      var minority_reservation_coefficient = map(reservation.value/theoreticalBluePercent,0,1,-2,0);
+      // Takes values between 0 and 1
+      var minority_reservation_coefficient = map(reservation.value/theoreticalBluePercent,0,1,0,0.5);
     }
     else {
-      // Takes values between 0 and 1
-      var minority_reservation_coefficient = map(reservation.value/theoreticalBluePercent,1,8,0,1);
+      // Takes values between 1 and 0
+      var minority_reservation_coefficient = map(reservation.value/theoreticalBluePercent,1,8,0.5,1);
     }
-    var reservation_coefficient = -minority_reservation_coefficient;
+    var reservation_coefficient = 1-minority_reservation_coefficient;
 
     if (boost_active){
       // do math here
@@ -214,14 +214,15 @@ var Student = function(x,y,rad,affirmative,enrolled){
     }
 
     // Values between 0 and 1
-    var university_coefficient = universities.scale();
+    var university_coefficient = 0.5+universities.scale()/2;
     if (gdp.value > threshold){
       var growth_coefficient = map(gdp.value,gdp.lower,gdp.upper,0,1);
     }
     else {
       var growth_coefficient = 0;
     }
-    var mismatched_coefficient = 1-(map(mismatches.value,0,100,0,1)); // Minority only
+
+    var mismatched_coefficient = (map(mismatches.value,0,25,0.2,0)); // Minority only
 
     if (!this.affirmative){
       this.satisfaction = this.enrolled*5 + reservation_coefficient + university_coefficient +
@@ -230,7 +231,7 @@ var Student = function(x,y,rad,affirmative,enrolled){
     else {  
       this.satisfaction = this.enrolled*5 + university_coefficient + growth_coefficient +
                           minority_reservation_coefficient + mismatched_coefficient + 
-                          this.individualHappiness - 3*this.mismatched + boost_coefficient;
+                          this.individualHappiness + -this.mismatched + boost_coefficient;
     }
     this.agitation = 10-this.satisfaction;
   }

@@ -39,6 +39,7 @@ var framesPerMonth = 100;
 var initialBudget = 1000;
 var threshold = 7*initialBudget;
 var initialReservation = 25;
+var initialUniversities = 700;
 var withoutReservation = 5;
 var regularDropOutRate = 2;
 var percentSeats = 50;
@@ -171,7 +172,7 @@ function initializeValues(){
 
 	// policies
 	reservation = new Policy("Reservation",initialReservation,0,100,0);
-	universities = new Policy("Universities",700,500,900,50);
+	universities = new Policy("Universities",initialUniversities,500,900,50);
 	public_incentive_boost = new Policy("Public Initiatives",0,0,0,1000);
 	//remove this
 	policies = [reservation,universities,public_incentive_boost];
