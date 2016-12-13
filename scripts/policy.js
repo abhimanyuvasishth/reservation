@@ -23,6 +23,7 @@ var Policy = function(name,value,lower,upper,cost){
       boost_active = true;
       boost_month = cur_month;
       boost_year = cur_year;
+      boost_count++;
       gdp.update(gdp.value-this.cost);
     }
     else if (this.type == "percent" || this.type == "numeric") {

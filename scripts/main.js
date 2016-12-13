@@ -30,13 +30,14 @@ var policies = [];
 var results = [];
 var messages = [];
 
+var pause = false;
 var previous_voters;
 var totalStudents;
 var bluePercent;
 var theoreticalBluePercent = 15;
 var framesPerMonth = 100;
 var initialBudget = 1000;
-var threshold = 5*initialBudget;
+var threshold = 7*initialBudget;
 var initialReservation = 25;
 var withoutReservation = 5;
 var regularDropOutRate = 2;
@@ -46,7 +47,8 @@ var percentSeats = 50;
 var reservation;
 var universities;
 var public_incentive_boost;
-var boost_active = false;
+var boost_active;
+var boost_count;
 var boost_month;
 var boost_year;
 
@@ -89,6 +91,7 @@ function init(){
 	initializeValues();
 	initializeStudents();
 	initializeButtons();
+	updateStudents();
 }
 
 function initializeFrame(){
@@ -151,6 +154,9 @@ function initializeValues(){
 	// date
 	cur_month = month();
 	cur_year = year();
+	boost_active = false;
+	boost_count = 0;
+
 	partyFill = random(1) < 0.5 ? blue : yellow;
 
 	// messages
@@ -184,7 +190,18 @@ function initializeValues(){
 	popularity = new Result("Popularity",0,0,100,popularity_message);
 	party_approval = new Result("Party Approval",50,0,100,party_approval_message);
 
-	results = [gdp,mismatches,popularity,party_approval];
+	appendEndGameMessages();
+
+	results = [gdp,mismatches,popularity,party_approval];	
+}
+
+function appendEndGameMessages(){
+	gdp.tooMuchMessage = "You have way too much money. Game over.";
+	gdp.tooLittleMessage = "You have very little money. Game over.";
+	popularity.tooMuchMessage = "100% popularity. You win.";
+	popularity.tooLittleMessage = "0% popularity. You lose.";
+	party_approval.tooMuchMessage = "Your party loves you. Game over.";
+	party_approval.tooLittleMessage = "You're fired. Game over.";
 }
 
 function initializeStudents(){
@@ -249,13 +266,21 @@ function shuffleArray(array) {
 function draw(){
 	background(250);
 	displaySidePanel();
-	drawUniversityPanels();
-	for(var i = 0; i < totalStudents; i++){
+	if (!pause){
+		drawUniversityPanels();
+		for(var i = 0; i < totalStudents; i++){
 			students[i].display(0);
  			students[i].move();
+		}
+		drawDate();
 	}
-	drawDate();
 	drawMessage();
+}
+
+function updateStudents(){
+	for (var i = 0; i < totalStudents; i++){
+		students[i].update();
+	}
 }
 
 function update(){
@@ -267,6 +292,7 @@ function update(){
 	}
 	mismatches.update(mismatched_val);
 	popularity.update(calculatePopularity());
+	party_approval.update(calculatePartyApproval());
 }
 
 function monthlyGrow(){
@@ -274,7 +300,6 @@ function monthlyGrow(){
 	var uni_component = universities.scale()*200;
 	if (reservation.value < theoreticalBluePercent){
 		var efficiency = 100*map(reservation.value,0,theoreticalBluePercent,3,1);	
-		console.log(efficiency);
 	}
 	else {
 		var efficiency = 100*map(reservation.value,theoreticalBluePercent,reservation.upper,0,-1);	
@@ -283,11 +308,16 @@ function monthlyGrow(){
 	gdp.update(gdp.value + growth_rate);
 
 	// Calculating the popularity
-  if ((cur_year-boost_year)*12+(cur_month-boost_month) >=12) boost_active = false;
-  else boost_active = true;
-
+	if (boost_count > 0){
+		if (cur_month % 3 == 0){
+			boost_count --;
+		}
+	}
+	if (boost_count == 0){
+		boost_active = false;
+	}
 	popularity.update(calculatePopularity());
-
+	party_approval.update(calculatePartyApproval());
 	results = [gdp,mismatches,popularity,party_approval];
 }
 
@@ -298,6 +328,16 @@ function calculatePopularity(){
  			sum += students[i].satisfaction * 1/students[i].maxAgitation;
 	}	
 	return (sum/totalStudents)*100;
+}
+
+function calculatePartyApproval(){
+	if (partyFill == yellow){
+		
+	}
+	else {
+		
+	}
+	return 50;
 }
 
 function createCopy(array){
@@ -319,6 +359,7 @@ function movePeople(){
 	for (var i = 0; i < totalStudents; i++){
 		if (studentsCopy[i].enrolled && !studentsCopy[i].transitioning){
 			studentsCopy[i].graduate();
+			studentsCopy[i].update();
 			if (graduateCounter = numGraduatesPerMonth){
 				break;
 			}
@@ -330,6 +371,7 @@ function movePeople(){
 		if (studentsCopy[i].affirmative == true && studentsCopy[i].enrolled && !studentsCopy[i].transitioning){
 			if (random(1) < mismatches.value/100){
 				studentsCopy[i].dropOut(true);
+				studentsCopy[i].update();
 			}
 		}
 	}
@@ -339,6 +381,7 @@ function movePeople(){
 		if (studentsCopy[i].affirmative == false && studentsCopy[i].enrolled && !studentsCopy[i].transitioning){
 			if (random(1) < regularDropOutRate/100){
 				studentsCopy[i].dropOut();
+				studentsCopy[i].update();
 			}
 		}
 	}
@@ -348,6 +391,7 @@ function movePeople(){
 		if (studentsCopy[i].affirmative == true && !studentsCopy[i].enrolled && !studentsCopy[i].transitioning){
 			if (computeReservedSeats() < reservation.value*totalSeats && totalSeats-computeTakenSeats() > 0){
 				studentsCopy[i].enroll();
+				studentsCopy[i].update();
 			}
 		}
 	}
@@ -357,6 +401,7 @@ function movePeople(){
 		if (studentsCopy[i].affirmative == false && !studentsCopy[i].enrolled && !studentsCopy[i].transitioning){
 			if (totalSeats-computeTakenSeats() > 0){
 				studentsCopy[i].enroll();
+				studentsCopy[i].update();
 			}
 		}
 	}
@@ -394,6 +439,7 @@ function createNewStudent(index){
 	var student = new Student(sideBarRightX,random(topBarX,bottomBarX), rad, affirmative, enrollment);
 	students.splice(index, 0, student);
 	students[index].join();
+	students[index].update();
 	showLegend = false;
 }
 
@@ -480,6 +526,10 @@ function displaySidePanel(){
 		textSize(textCost);
 		fill(100,0,0);
 		text("Cost: " + policies[i].cost, sideBarLeftX*0.5, yVal+textResult);
+		if (i == 2){
+			fill(0,100,0);
+			text("Boost Count: " + boost_count,sideBarLeftX*0.5, yVal+1.5*textResult)
+		}
 	}
 
 	// Right sidebar for results
@@ -544,7 +594,14 @@ function createRestartAndHelpButton(){
 }
 
 function endgame(result){
-	console.log(result);
+	if (result.value <= result.lower){
+		var message = result.tooLittleMessage;
+	}
+	else if (result.value >= result.upper){
+		var message = result.tooMuchMessage;
+	}
+	bottomMessage = message;	
+	pause = true;
 }
 
 // function windowResized() {
@@ -582,6 +639,7 @@ function mouseReleased(){
 			bottomMessage = restart_message;
 			init();
 			showLegend = false;
+			pause = false;
 			return;
 		}
 		else {

@@ -202,24 +202,36 @@ var Student = function(x,y,rad,affirmative,enrolled){
 
     if (boost_active){
       // do math here
+      if (this.enrolled){
+        var boost_coefficient = 0.3*boost_count;
+      }
+      else {
+        var boost_coefficient = 0.5*boost_count; 
+      }
+    }
+    else {
+      var boost_coefficient = 0;
     }
 
     // Values between 0 and 1
     var university_coefficient = universities.scale();
-    growth_coefficient = gdp.value > threshold;
-
-    var mismatched_coefficient = -1*(map(mismatches.value,0,100,0,1)); // Minority only
+    if (gdp.value > threshold){
+      var growth_coefficient = map(gdp.value,gdp.lower,gdp.upper,0,1);
+    }
+    else {
+      var growth_coefficient = 0;
+    }
+    var mismatched_coefficient = 1-(map(mismatches.value,0,100,0,1)); // Minority only
 
     if (!this.affirmative){
       this.satisfaction = this.enrolled*5 + reservation_coefficient + university_coefficient +
-                          growth_coefficient + this.individualHappiness;
+                          growth_coefficient + this.individualHappiness + boost_coefficient;
     }
     else {  
       this.satisfaction = this.enrolled*5 + university_coefficient + growth_coefficient +
                           minority_reservation_coefficient + mismatched_coefficient + 
-                          this.individualHappiness - 3*this.mismatched;
+                          this.individualHappiness - 3*this.mismatched + boost_coefficient;
     }
-
     this.agitation = 10-this.satisfaction;
   }
 }

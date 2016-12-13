@@ -22,7 +22,12 @@ var Result = function(name,value,lower,upper,message){
   this.update = function(new_value){
   	this.compare(new_value,this.value);
     this.value = new_value;
-    if (this.value >= this.upper || this.value <= this.lower) endgame(this);
+    if (this.name != "Mismatched Rate"){
+      if (this.value > this.upper || this.value < this.lower) {
+        endgame(this);
+        console.log("ending");
+      }
+    }
   }
 
   this.displayInfo = function(){
