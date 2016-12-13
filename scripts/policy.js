@@ -20,7 +20,10 @@ var Policy = function(name,value,lower,upper,cost){
   this.update = function(sign){
     if (this.type == "boost"){
       // Do boost math here
-      console.log("ch");
+      boost_active = true;
+      boost_month = cur_month;
+      boost_year = cur_year;
+      gdp.update(gdp.value-this.cost);
     }
     else if (this.type == "percent" || this.type == "numeric") {
       if (sign > 0 && this.value < this.upper) {
@@ -29,6 +32,7 @@ var Policy = function(name,value,lower,upper,cost){
       }
       else if (sign < 0 && this.value > this.lower) {
         this.value--;
+        gdp.update(gdp.value+this.cost*0.9);
       }
     }
   }

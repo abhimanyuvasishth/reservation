@@ -36,7 +36,7 @@ var bluePercent;
 var theoreticalBluePercent = 15;
 var framesPerMonth = 100;
 var initialBudget = 1000;
-var threshold = 10*initialBudget;
+var threshold = 5*initialBudget;
 var initialReservation = 25;
 var withoutReservation = 5;
 var regularDropOutRate = 2;
@@ -46,6 +46,9 @@ var percentSeats = 50;
 var reservation;
 var universities;
 var public_incentive_boost;
+var boost_active = false;
+var boost_month;
+var boost_year;
 
 // Results
 var gdp;
@@ -162,7 +165,7 @@ function initializeValues(){
 
 	// policies
 	reservation = new Policy("Reservation",initialReservation,0,100,0);
-	universities = new Policy("Universities",700,500,900,1000);
+	universities = new Policy("Universities",700,500,900,50);
 	public_incentive_boost = new Policy("Public Initiatives",0,0,0,1000);
 	//remove this
 	policies = [reservation,universities,public_incentive_boost];
@@ -176,7 +179,7 @@ function initializeValues(){
 	var popularity_message = "Keep the people happy";
 	var party_approval_message = "Keep your party happy and keep your job";
 
-	gdp = new Result("GDP",initialBudget,-10000,100000,gdp_message);
+	gdp = new Result("GDP",initialBudget,-5000,10000,gdp_message);
 	mismatches = new  Result("Mismatch Rate",5,0,100,mismatch_message);
 	popularity = new Result("Popularity",0,0,100,popularity_message);
 	party_approval = new Result("Party Approval",50,0,100,party_approval_message);
@@ -263,32 +266,38 @@ function update(){
 		var mismatched_val = map(reservation.value,theoreticalBluePercent,reservation.upper,3,20);	
 	}
 	mismatches.update(mismatched_val);
-
-	calculatePopularity();
-
-	// growth_rate = universities.value;
-	// gdp.update(gdp.value + growth_rate);
-	// party_approval;
-	// var sum = 0;
-	// for(var i = 0; i < totalStudents; i++){
-	// 		students[i].update();
- // 			sum += students[i].satisfaction * 1/students[i].maxAgitation;
-	// }
-	// popularity.update((sum/totalStudents)*100);
-	// results = [gdp,mismatches,popularity,party_approval];	
+	popularity.update(calculatePopularity());
 }
 
 function monthlyGrow(){
-	growth_rate = universities.value;
+	// Calculating the growth rate
+	var uni_component = universities.scale()*200;
+	if (reservation.value < theoreticalBluePercent){
+		var efficiency = 100*map(reservation.value,0,theoreticalBluePercent,3,1);	
+		console.log(efficiency);
+	}
+	else {
+		var efficiency = 100*map(reservation.value,theoreticalBluePercent,reservation.upper,0,-1);	
+	}
+	growth_rate = uni_component+efficiency;
 	gdp.update(gdp.value + growth_rate);
-	party_approval;
+
+	// Calculating the popularity
+  if ((cur_year-boost_year)*12+(cur_month-boost_month) >=12) boost_active = false;
+  else boost_active = true;
+
+	popularity.update(calculatePopularity());
+
+	results = [gdp,mismatches,popularity,party_approval];
+}
+
+function calculatePopularity(){
 	var sum = 0;
 	for(var i = 0; i < totalStudents; i++){
 			students[i].update();
  			sum += students[i].satisfaction * 1/students[i].maxAgitation;
-	}
-	popularity.update((sum/totalStudents)*100);
-	results = [gdp,mismatches,popularity,party_approval];
+	}	
+	return (sum/totalStudents)*100;
 }
 
 function createCopy(array){
@@ -351,10 +360,6 @@ function movePeople(){
 			}
 		}
 	}
-
-	console.log(totalSeats);
-	console.log(computeTakenSeats());
-	console.log(computeReservedSeats());
 }
 
 function drawUniversityPanels(){
@@ -482,7 +487,7 @@ function displaySidePanel(){
 		fill(0);
 		textSize(textResult);
 		var yVal = (height/5)*(i+1);
-		if (i < 1) text(results[i].value, sideBarRightX+0.5*sideBarLeftX, yVal);
+		if (i < 1) text(Math.round(results[i].value), sideBarRightX+0.5*sideBarLeftX, yVal);
 		else text(Math.round(results[i].value) + "%", sideBarRightX+0.5*sideBarLeftX, yVal);
 		textSize(textResultVal);
 		text(results[i].name, sideBarRightX+0.5*sideBarLeftX, yVal-textResult);
@@ -538,6 +543,10 @@ function createRestartAndHelpButton(){
 	text("H", sideBarLeftX*0.75, bottomBarX+5+(height-bottomBarX)/2);	
 }
 
+function endgame(result){
+	console.log(result);
+}
+
 // function windowResized() {
 //   canvas.size(windowWidth, windowHeight);
 // }
@@ -576,7 +585,7 @@ function mouseReleased(){
 			return;
 		}
 		else {
-			// Restarted
+			// Help
 			bottomMessage = help_message;
 			showLegend = false;
 			return;	
@@ -585,7 +594,6 @@ function mouseReleased(){
 	for (var i = 0; i < totalStudents; i++){
 		if (students[i].clicked(mouseX,mouseY)) {
 			students[i].show();
-			console.log(students[i].time());
 			return;
 		}
 	}
