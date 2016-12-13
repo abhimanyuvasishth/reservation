@@ -426,10 +426,25 @@ function movePeople(){
 }
 
 function drawUniversityPanels(){
-	fill(200);
-	rect(sideBarLeftX,topBarX,sideBarRightX-sideBarLeftX-uniSize,bottomBarX-topBarX);
-	fill(100);
-	rect(sideBarRightX-uniSize,topBarX,uniSize,bottomBarX-topBarX);
+	push();
+	var bool = true;
+	if (bool){
+		fill(250);
+		var thickness = students[0].rad/4;
+		strokeWeight(thickness);
+		stroke(0,200,0);
+		rect(sideBarLeftX + thickness/2,topBarX,sideBarRightX-sideBarLeftX-uniSize-thickness,bottomBarX-topBarX);	
+		stroke(200,0,0);
+		rect(sideBarRightX-uniSize+thickness/2,topBarX,uniSize-thickness,bottomBarX-topBarX);
+	}
+	else {
+		fill(200);
+		rect(sideBarLeftX,topBarX,sideBarRightX-sideBarLeftX-uniSize-thickness/2,bottomBarX-topBarX);
+		rect(sideBarLeftX,topBarX,sideBarRightX-sideBarLeftX-uniSize,bottomBarX-topBarX);
+		fill(100);
+		rect(sideBarRightX-uniSize,topBarX,uniSize,bottomBarX-topBarX);
+	}
+	pop();
 	fill(0);
 	textSize(textMessage);
 	text("Enrolled", sideBarLeftX+uniSize/2,topBarX+(bottomBarX-topBarX)*0.5);
