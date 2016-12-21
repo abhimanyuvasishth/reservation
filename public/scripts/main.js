@@ -644,7 +644,7 @@ function endgame(result){
 
 function mouseReleased(){
 	// Play
-	if (mouseX < width && mouseY < height && mouseY > 0 && mouseX > 0 && pause == true){
+	if (mouseX < width*0.75 && mouseY < height && mouseY > 0 && mouseX > 0.25*width && pause == true){
 		init();
 		showLegend = false;
 		pause = false;

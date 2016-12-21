@@ -1,0 +1,25 @@
+{
+  "name": "reservation",
+  "version": "1.0.0",
+  "description": "A simulation of affirmative action policies in Indian universities",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abhimanyuvasishth/reservation.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/abhimanyuvasishth/reservation/issues"
+  },
+  "homepage": "https://github.com/abhimanyuvasishth/reservation#readme",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "ejs": "^2.5.5",
+    "express": "^4.14.0",
+    "request": "^2.79.0"
+  }
+}
